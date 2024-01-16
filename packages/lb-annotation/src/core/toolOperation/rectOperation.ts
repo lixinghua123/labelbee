@@ -35,8 +35,6 @@ class RectOperation extends BasicToolOperation {
 
   public rectList: IRect[];
 
-  public drawOutSideTarget: boolean; // 是否能在边界外进行标注
-
   // 具体操作
   public hoverRectID?: string; // 当前是否hover rect
 
@@ -52,6 +50,8 @@ class RectOperation extends BasicToolOperation {
 
   public _textAttributeInstance?: TextAttributeClass;
 
+  private _drawOutSideTarget: boolean; // 是否能在边界外进行标注
+
   private selection: Selection;
 
   private dragInfo?: {
@@ -63,9 +63,11 @@ class RectOperation extends BasicToolOperation {
     startTime: number;
   };
 
+  private highlightVisible = false;
+
   constructor(props: IRectOperationProps) {
     super(props);
-    this.drawOutSideTarget = props.drawOutSideTarget || false;
+    this._drawOutSideTarget = props.drawOutSideTarget || false;
     this.rectList = [];
     this.isFlow = true;
     this.config = CommonToolUtils.jsonParser(props.config);
@@ -135,6 +137,10 @@ class RectOperation extends BasicToolOperation {
 
   get selectedID() {
     return this.selectedRectID;
+  }
+
+  get drawOutSideTarget() {
+    return this._drawOutSideTarget || this.config.drawOutsideTarget;
   }
 
   public get selectedRect() {
@@ -473,7 +479,7 @@ class RectOperation extends BasicToolOperation {
    * @returns
    */
   public isRectsOutOfTarget(rects: IRect[], offset: ICoordinate) {
-    if (this.config.drawOutsideTarget !== false) {
+    if (this.drawOutSideTarget !== false) {
       return false;
     }
 
@@ -707,7 +713,7 @@ class RectOperation extends BasicToolOperation {
     }
 
     // 边缘判断
-    if (this.config.drawOutsideTarget === false) {
+    if (this.drawOutSideTarget === false) {
       if (this.basicResult) {
         if (this.basicResult?.pointList?.length > 0) {
           // 多边形判断
@@ -829,7 +835,7 @@ class RectOperation extends BasicToolOperation {
       coordinateZoom,
       { x: 0, y: 0 },
       this.imgInfo,
-      this.config.drawOutsideTarget,
+      this.drawOutSideTarget,
       this.basicResult,
       this.zoom,
     );
@@ -881,7 +887,7 @@ class RectOperation extends BasicToolOperation {
         y = coordinate.y;
       }
 
-      if (this.config.drawOutsideTarget === false) {
+      if (this.drawOutSideTarget === false) {
         if (this.basicResult?.pointList?.length > 0) {
           // changeDrawOutsideTarget 最好还是在这里下功夫这里暂时进行多边形的判断
           if (
@@ -931,9 +937,17 @@ class RectOperation extends BasicToolOperation {
     return undefined;
   }
 
+  public setHighlightVisible(highlightVisible: boolean) {
+    this.highlightVisible = highlightVisible;
+    this.setAttributeLockList([]);
+  }
+
   public setAttributeLockList(attributeLockList: string[]) {
     this.setSelectedRectID(undefined);
 
+    if (attributeLockList?.length) {
+      this.highlightVisible = false;
+    }
     super.setAttributeLockList(attributeLockList);
   }
 
@@ -977,7 +991,7 @@ class RectOperation extends BasicToolOperation {
       coordinateZoom,
       { x: 0, y: 0 },
       this.imgInfo,
-      this.config.drawOutsideTarget,
+      this.drawOutSideTarget,
       this.basicResult,
       this.zoom,
     );
@@ -1275,6 +1289,10 @@ class RectOperation extends BasicToolOperation {
       return;
     }
 
+    if (this.selection.triggerKeyboardEvent(e, this.setRectList.bind(this) as unknown as SetDataList)) {
+      return;
+    }
+
     const { keyCode } = e;
     switch (keyCode) {
       case EKeyCode.Ctrl:
@@ -1360,10 +1378,6 @@ class RectOperation extends BasicToolOperation {
 
   public onKeyUp(e: KeyboardEvent) {
     super.onKeyUp(e);
-
-    if (this.selection.triggerKeyboardEvent(e, this.setRectList.bind(this) as unknown as SetDataList)) {
-      return;
-    }
 
     switch (e.keyCode) {
       case EKeyCode.Ctrl:
@@ -1594,6 +1608,17 @@ class RectOperation extends BasicToolOperation {
         });
       }
 
+      if (this.highlightVisible && rect?.isHighlight) {
+        DrawUtils.drawHighlightFlag({
+          canvas: this.canvas,
+          color: strokeColor,
+          position: {
+            x: transformRect.x - 5,
+            y: transformRect.y - 16,
+          },
+        });
+      }
+
       const lineWidth = this.style?.width ?? 2;
 
       if (rect.id === this.hoverRectID || rect.id === this.selectedRectID || this.isMultiMoveMode) {
@@ -1659,6 +1684,7 @@ class RectOperation extends BasicToolOperation {
       CommonToolUtils.getSourceID(this.basicResult),
       this.attributeLockList,
       this.selectedIDs,
+      this.highlightVisible,
     );
     // 静态矩形
     if (!this.isHidden) {

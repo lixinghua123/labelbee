@@ -85,6 +85,39 @@ const tagToolConfig = {
   ],
 };
 
+const textToolConfig = {
+  "showConfirm": true,
+  "showDirection": false,
+  "skipWhileNoDependencies": false,
+  "configList": [
+    {
+      "label": "文本",
+      "key": "text",
+      "required": false,
+      "default": "",
+      "maxLength": 1000
+    },
+    {
+      "label": "文本2",
+      "key": "text2",
+      "required": false,
+      "default": "",
+      "maxLength": 1000
+    },
+    {
+      "label": "文本3",
+      "key": "text3",
+      "required": false,
+      "default": "",
+      "maxLength": 1000
+    }
+  ],
+  "filterData": [
+    "valid",
+    "invalid"
+  ]
+}
+
 const lineToolConfig = {
   lineType: 0,
   lineColor: 0,
@@ -115,19 +148,6 @@ const lineToolConfig = {
   filterData: ['valid', 'invalid'],
 
   showLineLength: true,
-};
-
-const textToolConfig = {
-  showConfirm: false,
-  skipWhileNoDependencies: false,
-  enableTextRecognition: false,
-  recognitionMode: 'general',
-  configList: [
-    { label: '文本', key: 'text', required: false, default: 'default1', maxLength: 1000 },
-    { label: '文本2', key: 'text2', required: true, default: 'default2', maxLength: 1000 },
-    { label: '文本3', key: 'text3', required: true, default: 'default3', maxLength: 1000 },
-  ],
-  filterData: ['valid', 'invalid'],
 };
 
 const polygonConfig = {
@@ -261,9 +281,37 @@ const LLMToolConfig = {
     { label: '包含敏感信息', value: 'sensitiveInfo' },
     { label: '包含敏感信息2', value: 'sensitiveInfo2' },
   ], // 指标判断
-  text: [
-    { title: '这是标题1', tip: '这是提示语1', min: 0, max: 100 },
-    { title: '这是标题2', tip: '这是提示语2', min: 10, max: 100 },
+  dataType: {
+    prompt: 'picture',
+    response: 'text',
+  },
+  isTextEdit: true, // 是否打开文本编辑
+  textEdit: [
+    {
+      title: 1,
+      min: 11,
+      max: 1000,
+      isFillAnswer: true, // 是否填充答案
+      isLaText: true, // 是否打开LaTex编辑
+      textControl: true // 文本对照
+    },
+    {
+      title: 2,
+      min: 10,
+      isFillAnswer: false, // 是否填充答案
+      textControl: true // 文本对照
+    },
+    {
+      title: 3,
+      max: 100,
+      isFillAnswer: true, // 是否填充答案
+      textControl: false // 文本对照
+    },
+    {
+      title: 4,
+      isFillAnswer: false, // 是否填充答案
+      textControl: false // 文本对照
+    },
   ],
 };
 
@@ -273,7 +321,7 @@ const audioToolConfig = {
   "skipWhileNoDependencies": false,
   "configList": [
     {
-      "label": "文本",
+      "label": "测试文本",
       "key": "text",
       "required": false,
       "default": "",
@@ -375,6 +423,10 @@ export const getConfig = (tool) => {
 
   if (tool === EVideoToolName.VideoTagTool) {
     return tagToolConfig;
+  }
+
+  if (tool === EVideoToolName.VideoTextTool) {
+    return textToolConfig;
   }
 
   if (tool === EPointCloudName.PointCloud) {

@@ -349,6 +349,9 @@ $prefix: bee;
 
       &:hover {
         background: #f3f4ff;
+        .sensebee-radio-icon{
+          display: inline-block;
+        }
       }
 
       > span:nth-child(2) {
@@ -373,6 +376,10 @@ $prefix: bee;
         flex: 1;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .sensebee-radio-icon{
+        margin-right: 10px;
+        display: none;
       }
     }
   }
@@ -542,7 +549,7 @@ $prefix: bee;
         margin: 0px 10px;
       }
     }
-    &__silder {
+    &__slider {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1042,6 +1049,13 @@ $hotkey-container-padding: 7px;
   overflow-y: scroll;
 }
 
+.textToolSwitchItem{
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  font-size: 12px;
+}
+
 .textareaContainer {
   position: relative;
   padding: 0;
@@ -1306,6 +1320,10 @@ $hotkey-container-padding: 7px;
 }
 
 /** VideoPlayer样式 start */
+$videoTipHeight: 40px;
+$videoTrackHeight: 45px;
+$timeTrackHeight: 24px;
+$videoHeight: calc(100% - #{$videoTrackHeight * 2} - #{$timeTrackHeight});
 .#{$prefix}-video-wrapper {
   width: 100%;
   height: 100%;
@@ -1313,11 +1331,21 @@ $hotkey-container-padding: 7px;
   flex-direction: column;
   background-color: black;
   overflow: hidden;
+  flex: 1 1;
 
   .#{$prefix}-video-container {
-    flex: 1;
+    height: calc(100% - 80px);
     overflow: hidden;
     position: relative;
+    display: flex;
+    flex-direction:column;
+
+    .#{$prefix}-video {
+      flex: 1 1;
+    }
+    .#{$prefix}-video-track{
+      height: $videoHeight;
+    }
   }
 }
 
@@ -1377,7 +1405,10 @@ $hotkey-container-padding: 7px;
 
 // Controller 样式
 .#{$prefix}-video-controller__wrapper {
-  position: relative;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
 }
 
 .#{$prefix}-video-controller {
@@ -1477,12 +1508,12 @@ $headerHeight: 40px;
 }
 
 .#{$ptPrefix}-container {
-    &__title-button {
-      border-radius: 2px;
-      padding: 4px 8px;
-      background-color: #fff;
-      color: #000000;
-    }
+  &__title-button {
+    border-radius: 2px;
+    padding: 4px 8px;
+    background-color: #fff;
+    color: #000000;
+  }
 }
 
 .#{$ptPrefix}-wrapper {
@@ -1982,13 +2013,15 @@ $ptToolHeight: 40px;
   }
 
   &__textBox {
-    padding: 24px;
+    padding: 26px 32px;
   }
 
   &__title {
     font-weight: 500;
     font-size: 18px;
     margin-bottom: 24px;
+    display: flex;
+    align-items: center;
   }
 
   &__content {
@@ -1996,13 +2029,53 @@ $ptToolHeight: 40px;
     font-size: 14px;
     display: flex;
     margin-bottom: 24px;
-    min-width: 240px;
-    padding: 16px;
+    width: 100%;
+  }
+
+  &__tag {
+    color: #666FFF;
+    background: #eeefff;
+    height: 20px;
+    padding: 0px 8px;
+    border: none;
+  }
+
+  &__headerContent {
+    font-weight: 500;
+    font-size: 14px;
+    overflow: auto;
+    height: calc(100% - 54px);
   }
 
   &__contentActive {
     background-color: #eeefff;
     border: 1px solid #666fff;
+  }
+
+  &__answer {
+    flex: 1;
+  }
+
+  &__loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0 4px;
+  }
+
+  &__failed {
+    color: #f26549;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: end;
+    span {
+      display: inline-flex;
+      align-items: center;
+      color: #666fff;
+      gap: 0 4px;
+      cursor: pointer;
+    }
   }
 }
 .#{$prefix}-LLMSidebar {
@@ -2223,4 +2296,11 @@ $predictTrackingPrefix: #{$prefix}-point-cloud-predict-tracking;
   bottom: 0;
   right: 0;
   z-index: -200;
+}
+
+.bee-audio-clip{
+  cursor: url('./assets/annotation/audio/blackClip.svg'), default;
+}
+.bee-audio-combined{
+  cursor: url('./assets/annotation/audio/combine.svg') 10 12, default;
 }
