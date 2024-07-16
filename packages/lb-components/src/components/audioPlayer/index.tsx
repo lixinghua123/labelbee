@@ -284,6 +284,7 @@ export const AudioPlayer = ({
 
   useDeepCompareEffect(() => {
     setSortByStartRegions(sortBy(regions, ['start']));
+
     setRegionMap(
       regions.reduce((prev, current) => {
         const { id } = current;
@@ -293,6 +294,10 @@ export const AudioPlayer = ({
         };
       }, {}),
     );
+    // TODO: In view mode, the frame is not displayed when switching tree nodes.
+    if (isCheck) {
+      generateRegions();
+    }
   }, [regions]);
 
   useEffect(() => {
@@ -931,6 +936,10 @@ export const AudioPlayer = ({
         {regions.map((region) => {
           const { id } = region;
           const el = document.querySelector(`[data-id=${id}]`);
+          if (el instanceof HTMLElement) {
+            el.style.zIndex = '100';
+            el.style.opacity = showRemark ? '0.7' : '1';
+          }
           return el ? (
             <ClipRegion
               el={el}
