@@ -995,11 +995,8 @@ class RectOperation extends BasicToolOperation {
     this.clearActiveStatus();
   }
 
-  public setRectValidAndRender(id: string) {
-    if (!id) {
-      return;
-    }
-
+  public setRectValidAndRender(id?: string) {
+    const hasValid = this.rectList.some((rect) => rect?.valid);
     this.setRectList(
       this.rectList.map((rect) => {
         if (rect.id === id) {
@@ -1007,6 +1004,9 @@ class RectOperation extends BasicToolOperation {
             ...rect,
             valid: !rect.valid,
           };
+        }
+        if (this.selection.isIdSelected(rect.id)) {
+          rect.valid = !hasValid;
         }
         return rect;
       }),
@@ -1385,7 +1385,7 @@ class RectOperation extends BasicToolOperation {
         break;
 
       case EKeyCode.F:
-        if (this.selectedRectID) {
+        if (this.selectedIDs.length > 0) {
           this.setRectValidAndRender(this.selectedRectID);
         }
 
