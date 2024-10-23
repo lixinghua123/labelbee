@@ -112,7 +112,7 @@ const AttributeList = React.forwardRef((props: IProps, ref) => {
     props.attributeChanged(e.target.value);
   };
 
-  const attributeClickDebounce = _.debounce(attributeClick, 200);
+  const attributeClickDebounce = _.debounce(attributeClick, 100);
 
   const checkLock = (e: any, attributeInfo: any) => {
     if (props?.forbidColor) {
