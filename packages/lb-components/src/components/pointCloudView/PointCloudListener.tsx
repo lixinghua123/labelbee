@@ -5,13 +5,7 @@ import { useBoxes } from './hooks/useBoxes';
 import { useSingleBox } from './hooks/useSingleBox';
 import { useSphere } from './hooks/useSphere';
 import React, { useContext, useEffect } from 'react';
-import {
-  cTool,
-  AttributeUtils,
-  CommonToolUtils,
-  EToolName,
-  EPointCloudName,
-} from '@labelbee/lb-annotation';
+import { cTool, CommonToolUtils, EToolName } from '@labelbee/lb-annotation';
 import { message } from 'antd';
 import { connect } from 'react-redux';
 import { a2MapStateToProps, IA2MapStateProps } from '@/store/annotation/map';
@@ -188,19 +182,8 @@ const PointCloudListener: React.FC<IProps> = ({
         deleteSelectedPointCloudBoxAndPolygon(currentDataRef.current);
         break;
 
-      default: {
-        if (config.attributeList?.length > 0) {
-          const keyCode2Attribute = AttributeUtils.getAttributeByKeycode(
-            e.keyCode,
-            config.attributeList,
-          );
-
-          if (keyCode2Attribute !== undefined) {
-            toolInstanceRef.current?.setDefaultAttribute(keyCode2Attribute);
-          }
-        }
-        return;
-      }
+      default:
+        break;
     }
   };
 

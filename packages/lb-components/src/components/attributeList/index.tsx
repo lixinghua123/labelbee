@@ -91,9 +91,11 @@ const AttributeList = React.forwardRef((props: IProps, ref) => {
     }
   };
 
+  const keydownEventsDebounce = _.debounce(keyDown, 200);
+
   useEffect(() => {
-    window.addEventListener('keydown', keyDown);
-    return () => window.removeEventListener('keydown', keyDown);
+    window.addEventListener('keydown', keydownEventsDebounce);
+    return () => window.removeEventListener('keydown', keydownEventsDebounce);
   });
 
   const changeColor = (value: string, color: string) => {
@@ -110,7 +112,7 @@ const AttributeList = React.forwardRef((props: IProps, ref) => {
     props.attributeChanged(e.target.value);
   };
 
-  const attributeClickDebounce = _.debounce(attributeClick, 100);
+  const attributeClickDebounce = _.debounce(attributeClick, 200);
 
   const checkLock = (e: any, attributeInfo: any) => {
     if (props?.forbidColor) {

@@ -163,8 +163,6 @@ export class PointCloud extends EventListener {
 
   private geometry: THREE.BufferGeometry;
 
-  private filterBoxWorkerTimer: ReturnType<typeof setTimeout> | null = null;
-
   constructor({
     container,
     noAppend,
@@ -829,17 +827,11 @@ export class PointCloud extends EventListener {
           this.geometry.setAttribute('color', new THREE.Float32BufferAttribute(newColor, 3));
           this.geometry.computeBoundingSphere();
 
-          if (this.filterBoxWorkerTimer) {
-            clearTimeout(this.filterBoxWorkerTimer);
+          // Calculation completed, worker terminated, and destroyed
+          if (this.filterBoxWorker) {
+            this.filterBoxWorker.terminate();
+            this.filterBoxWorker = null;
           }
-          // The creation of Worker themselves is time-consuming. Detect within 3 seconds whether the user still needs to use Worker to calculate
-          this.filterBoxWorkerTimer = setTimeout(() => {
-            if (this.filterBoxWorker) {
-              this.filterBoxWorker.terminate();
-              this.filterBoxWorker = null;
-            }
-          }, 3000);
-
           resolve({ geometry: this.geometry, num });
         };
       });
