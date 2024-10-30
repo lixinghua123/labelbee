@@ -41,6 +41,7 @@ const LLMMultiWheelLayout: React.FC<AppProps & IProps> = (props) => {
         defaultSize={{
           width: 600,
         }}
+        maxWidth='95%'
         enable={{ left: true }}
       >
         <Sider

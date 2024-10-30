@@ -168,10 +168,12 @@ const LLMMultiWheelToolSidebar = (props: IProps) => {
       const data = getRenderDataByResult(LLMConfig, {
         ...item,
         answerList: item?.answerList?.map((answer: any, index: number) => {
-          setNewAnswerListMap({
-            ...newAnswerListMap,
-            [`${item.id}-${answer.id}`]: answer.answer,
-          });
+          if (LLMConfig?.isTextEdit) {
+            setNewAnswerListMap({
+              ...newAnswerListMap,
+              [`${item.id}-${answer.id}`]: answer.answer,
+            });
+          }
           return {
             ...answer,
             order: index + 1,
@@ -249,7 +251,7 @@ const LLMMultiWheelToolSidebar = (props: IProps) => {
     const newList = answerList?.map((i: IAnswerList) => {
       if (i?.order === order) {
         // text edit
-        if (key === 'textEdit' && isString(value)) {
+        if (key === 'textEdit' && isString(value) && isTextEdit) {
           setNewAnswerListMap({
             ...newAnswerListMap,
             [`${selectedID}-${i?.id ?? ''}`]: value,
