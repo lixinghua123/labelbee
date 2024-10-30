@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useMemo } from 'react';
 import { EditFilled } from '@ant-design/icons';
 import { ToolIcons } from '../ToolIcons';
 import { EToolName } from '@/data/enums/ToolType';
@@ -42,6 +42,7 @@ import { SetTaskStepList } from '@/store/annotation/actionCreators';
 import { usePointCloudViews } from '@/components/pointCloudView/hooks/usePointCloudViews';
 import SubAttributeList from '@/components/subAttributeList';
 import DynamicResizer from '@/components/DynamicResizer';
+import { isNumber } from 'lodash';
 interface IProps {
   stepInfo: IStepInfo;
   toolInstance: ICustomToolInstance; // Created by useCustomToolInstance.
@@ -60,6 +61,10 @@ const BoxTrackIDInput = () => {
   const { t } = useTranslation();
 
   const selectedBoxTrackID = selectedBox?.info.trackID;
+
+  const hasSelectedBoxTrackID = useMemo(() => {
+    return isNumber(selectedBoxTrackID) && selectedBoxTrackID >= 0;
+  }, [selectedBoxTrackID]);
 
   const hasDuplicateTrackID = (trackID: number) => {
     const duplicateBox = pointCloudBoxList.find(
@@ -89,7 +94,7 @@ const BoxTrackIDInput = () => {
       return;
     }
 
-    if (!(newTrackID > 0)) {
+    if (newTrackID < 0) {
       message.error(t('PositiveIntegerCheck'));
       return;
     }
@@ -120,9 +125,9 @@ const BoxTrackIDInput = () => {
         }}
       >
         <span>{t('CurrentBoxTrackIDs')}</span>
-        {selectedBoxTrackID && (
+        {hasSelectedBoxTrackID && (
           <BatchUpdateModal
-            id={selectedBoxTrackID}
+            id={selectedBoxTrackID as number}
             updateCurrentPolygonList={(value) => updateCurrentPolygonList(value)}
           />
         )}
@@ -135,13 +140,13 @@ const BoxTrackIDInput = () => {
           lineHeight: '12px',
         }}
       >
-        {isEdit && selectedBoxTrackID ? (
+        {isEdit && hasSelectedBoxTrackID ? (
           <Input
             defaultValue={selectedBoxTrackID}
             onChange={(e) => {
               setInputValue(e.target.value);
             }}
-            disabled={!selectedBoxTrackID}
+            disabled={!hasSelectedBoxTrackID}
             size='small'
             onBlur={() => {
               applyInputValue();
@@ -160,7 +165,7 @@ const BoxTrackIDInput = () => {
             cursor: typeof selectedBoxTrackID !== 'undefined' ? 'pointer' : 'not-allowed',
           }}
           onClick={() => {
-            if (selectedBoxTrackID) {
+            if (hasSelectedBoxTrackID) {
               setIsEdit(!isEdit);
             }
           }}
