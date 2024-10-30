@@ -125,9 +125,9 @@ const BoxTrackIDInput = () => {
         }}
       >
         <span>{t('CurrentBoxTrackIDs')}</span>
-        {hasSelectedBoxTrackID && selectedBoxTrackID !== undefined && (
+        {hasSelectedBoxTrackID && (
           <BatchUpdateModal
-            id={selectedBoxTrackID}
+            id={selectedBoxTrackID as number}
             updateCurrentPolygonList={(value) => updateCurrentPolygonList(value)}
           />
         )}
