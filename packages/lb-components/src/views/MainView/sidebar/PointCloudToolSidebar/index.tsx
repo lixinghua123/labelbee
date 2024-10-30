@@ -94,7 +94,7 @@ const BoxTrackIDInput = () => {
       return;
     }
 
-    if (newTrackID < 0) {
+    if (!(newTrackID > 0)) {
       message.error(t('PositiveIntegerCheck'));
       return;
     }
