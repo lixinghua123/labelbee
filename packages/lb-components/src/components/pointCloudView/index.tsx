@@ -173,7 +173,7 @@ const PointCloudView: React.FC<IProps> = (props) => {
 
           <div className={getClassName('point-cloud-content')}>
             <div className={getClassName('point-cloud-container', 'left')}>
-              <PointCloud3DView />
+              <PointCloud3DView setResourceLoading={setResourceLoading} />
               {backAndSideView}
             </div>
             <div
