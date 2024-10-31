@@ -16,7 +16,7 @@ import { Modal } from 'antd';
 import { message } from 'antd/es';
 import _ from 'lodash';
 import { SetAnnotationLoading } from './actionCreators';
-import { AnnotationActionTypes, AnnotationState } from './types';
+import { AnnotationActionTypes, AnnotationState, BatchUpdateResultByTrackID } from './types';
 import { EToolName } from '@/data/enums/ToolType';
 
 export const getStepConfig = (stepList: any[], step: number) =>
@@ -874,7 +874,8 @@ export const annotationReducer = (
     }
 
     case ANNOTATION_ACTIONS.BATCH_UPDATE_RESULT_BY_TRACK_ID: {
-      const { id, newData, rangeIndex, imgList } = action.payload;
+      const actionNew = action as BatchUpdateResultByTrackID;
+      const { id, newData, rangeIndex, imgList } = actionNew.payload;
       const { imgIndex, onSubmit } = state;
       // Record the updated list.
       const updateImgList: Array<{ newInfo: IFileItem; imgIndex: number }> = [];

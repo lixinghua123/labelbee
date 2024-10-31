@@ -18,7 +18,7 @@ interface IProps {
   onCancel: () => void;
   config: IPointCloudConfig;
   imgList: AnnotationFileList;
-  imgIndex: number;
+  imgIndex?: number;
 }
 
 const layout = {
