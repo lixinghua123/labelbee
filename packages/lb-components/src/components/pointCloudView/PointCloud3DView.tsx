@@ -226,7 +226,7 @@ const PointCloud3D: React.FC<IA2MapStateProps> = ({
         pointCloud.generateBoxes(boxParamsList);
       }
     }
-  }, [currentData.result]);
+  }, [currentData.result, ptCtx.mainViewInstance]);
 
   /**
    *  Observe selectedID and reset camera to target top-view

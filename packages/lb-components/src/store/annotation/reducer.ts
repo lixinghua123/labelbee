@@ -874,8 +874,8 @@ export const annotationReducer = (
     }
 
     case ANNOTATION_ACTIONS.BATCH_UPDATE_RESULT_BY_TRACK_ID: {
-      const { id, newData, rangeIndex } = action.payload;
-      const { imgList, imgIndex, onSubmit } = state;
+      const { id, newData, rangeIndex, imgList } = action.payload;
+      const { imgIndex, onSubmit } = state;
       // Record the updated list.
       const updateImgList: Array<{ newInfo: IFileItem; imgIndex: number }> = [];
       const newImgList = imgList.map((v, i) => {

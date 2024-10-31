@@ -204,6 +204,7 @@ interface BatchUpdateResultByTrackID {
     id: number;
     newData: Partial<IPointCloudBox>;
     range: [number, number];
+    imgList: IFileItem[];
   };
 }
 
