@@ -18,7 +18,7 @@ interface IProps {
   onCancel: () => void;
   config: IPointCloudConfig;
   imgList: AnnotationFileList;
-  imgIndex: number;
+  imgIndex?: number;
 }
 
 const layout = {
@@ -77,8 +77,10 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
       message.info('该范围不存在更改数据, 请更改统一范围');
       return;
     }
-
-    dispatch(ToSubmitFileData(ESubmitType.SyncImgList));
+    /**
+     * Previously, imgList was retrieved from the state in dispatch(ToSubmitFileData(ESubmitType.SyncImgList)), but it was not the most up-to-date imgList.
+     * To fix this, the dispatch method was removed, and imgList is now passed through props to BatchUpdateResultByTrackID to ensure the latest data is used.
+     */
     const newData = {
       attribute: values.attribute,
     };
@@ -101,7 +103,9 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
       Object.assign(newData, size);
     }
 
-    dispatch(BatchUpdateResultByTrackID(id, newData, [values.prevPage - 1, values.nextPage - 1]));
+    dispatch(
+      BatchUpdateResultByTrackID(id, newData, [values.prevPage - 1, values.nextPage - 1], imgList),
+    );
     onCancel();
   };
 
@@ -190,7 +194,7 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
             rules={defaultNumberRules}
             name='prevPage'
             noStyle={true}
-            initialValue={1} // First Page 
+            initialValue={1} // First Page
           >
             <InputNumber
               precision={0}
@@ -213,7 +217,7 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
             rules={defaultNumberRules}
             name='nextPage'
             noStyle={true}
-            initialValue={imgList.length}  // Last Page 
+            initialValue={imgList.length} // Last Page
           >
             <InputNumber
               precision={0}
@@ -275,6 +279,7 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
 const mapStateToProps = (state: AppState) => {
   return {
     imgIndex: state.annotation.imgIndex,
+    ...state,
   };
 };
 

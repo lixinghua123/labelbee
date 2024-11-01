@@ -31,6 +31,7 @@ import PointCloudSizeSlider from './components/PointCloudSizeSlider';
 import TitleButton from './components/TitleButton';
 import { LeftOutlined } from '@ant-design/icons';
 import { useToolStyleContext } from '@/hooks/useToolStyle';
+import { usePointCloudAttribute } from './hooks/usePointCloudAttribute';
 
 const EKeyCode = cKeyCode.default;
 const pointCloudID = 'LABELBEE-POINTCLOUD';
@@ -121,7 +122,12 @@ const PointCloud3DSideBar = ({ isEnlarge }: { isEnlarge?: boolean }) => {
   );
 };
 
-const PointCloud3D: React.FC<IA2MapStateProps> = ({ currentData, config, highlightAttribute }) => {
+const PointCloud3D: React.FC<IA2MapStateProps> = ({
+  currentData,
+  config,
+  highlightAttribute,
+  setResourceLoading,
+}) => {
   const ptCtx = useContext(PointCloudContext);
   const [showDirection, setShowDirection] = useState(true);
   const [isEnlarge, setIsEnlarge] = useState(false);
@@ -131,6 +137,7 @@ const PointCloud3D: React.FC<IA2MapStateProps> = ({ currentData, config, highlig
   const { t } = useTranslation();
   const { value: toolStyle } = useToolStyleContext();
   const { hiddenText } = toolStyle || {};
+  const { updatePointCloudAttribute } = usePointCloudAttribute(setResourceLoading, config);
 
   useEffect(() => {
     let pointCloud = ptCtx.mainViewInstance;
@@ -194,7 +201,7 @@ const PointCloud3D: React.FC<IA2MapStateProps> = ({ currentData, config, highlig
           config,
           hiddenText,
         });
-        pointCloud.setHandlerPipe({setSelectedIDs: ptCtx.setSelectedIDs, setNeedUpdateCenter});
+        pointCloud.setHandlerPipe({ setSelectedIDs: ptCtx.setSelectedIDs, setNeedUpdateCenter });
         ptCtx.setMainViewInstance(pointCloud);
       }
     }
@@ -207,26 +214,19 @@ const PointCloud3D: React.FC<IA2MapStateProps> = ({ currentData, config, highlig
     if (ref.current && currentData?.url) {
       if (currentData.result && ptCtx.mainViewInstance) {
         let pointCloud = ptCtx.mainViewInstance;
-        const boxParamsList = PointCloudUtils.getBoxParamsFromResultList(currentData.result);
-
-        // Add Init Box
-        boxParamsList.forEach((v: IPointCloudBox) => {
-          const hex = toolStyleConverter.getColorFromConfig(
-            { attribute: v.attribute },
-            { ...config, attributeConfigurable: true },
-            {},
-          )?.hex;
-
-          pointCloud?.addBoxToSense(v, hex);
-        });
-        pointCloud.render();
-        ptCtx.setPointCloudResult(boxParamsList);
         const rectParamsList = PointCloudUtils.getRectParamsFromResultList(currentData.result);
-        ptCtx.setRectList(rectParamsList);
+        const boxParamsList = PointCloudUtils.getBoxParamsFromResultList(currentData.result);
+        const currentSelectInfo = boxParamsList.find((item) => item.id === ptCtx.selectedID);
+        if (currentSelectInfo) {
+          updatePointCloudAttribute(currentSelectInfo.attribute);
+        }
         ptCtx.setPointCloudValid(jsonParser(currentData.result)?.valid);
+        ptCtx.setPointCloudResult(boxParamsList);
+        ptCtx.setRectList(rectParamsList);
+        pointCloud.generateBoxes(boxParamsList);
       }
     }
-  }, [currentData, ptCtx.mainViewInstance]);
+  }, [currentData.result, ptCtx.mainViewInstance]);
 
   /**
    *  Observe selectedID and reset camera to target top-view
@@ -241,7 +241,7 @@ const PointCloud3D: React.FC<IA2MapStateProps> = ({ currentData, config, highlig
     if (!needUpdateCenter) {
       setNeedUpdateCenter(true);
       return;
-    };
+    }
     if (selectedId !== undefined) {
       setTarget3DView(EPerspectiveView.Top);
 
@@ -254,7 +254,6 @@ const PointCloud3D: React.FC<IA2MapStateProps> = ({ currentData, config, highlig
     // when create new box, need to wait for a moment to init box.
     ptCtx.mainViewInstance?.setHighlightColor(selectedId);
     ptCtx.mainViewInstance?.render();
-
   }, [selectedBox?.info?.id]);
 
   useEffect(() => {

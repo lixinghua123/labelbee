@@ -32,6 +32,7 @@ export interface IA2MapStateProps extends IAnnotationStateProps {
   configString: string; // Easy for users to listener.
   highlightAttribute: string;
   loadPCDFileLoading: boolean;
+  setResourceLoading?: (loading: boolean) => void;
 }
 
 export const a2MapStateToProps = (state: AppState) => {

@@ -198,12 +198,13 @@ interface BatchUpdateTrackID {
   };
 }
 
-interface BatchUpdateResultByTrackID {
+export interface BatchUpdateResultByTrackID {
   type: typeof ANNOTATION_ACTIONS.BATCH_UPDATE_RESULT_BY_TRACK_ID;
   payload: {
     id: number;
     newData: Partial<IPointCloudBox>;
-    range: [number, number];
+    rangeIndex: [number, number];
+    imgList: IFileItem[];
   };
 }
 

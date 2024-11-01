@@ -249,6 +249,7 @@ export function BatchUpdateResultByTrackID(
   id: number, // originData
   newData: Partial<IPointCloudBox>,
   rangeIndex: [number, number],
+  imgList: IFileItem[],
 ): AnnotationActionTypes {
   return {
     type: ANNOTATION_ACTIONS.BATCH_UPDATE_RESULT_BY_TRACK_ID,
@@ -256,6 +257,7 @@ export function BatchUpdateResultByTrackID(
       id,
       newData,
       rangeIndex,
+      imgList,
     },
   };
 }
