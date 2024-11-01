@@ -18,7 +18,7 @@ interface IProps {
   onCancel: () => void;
   config: IPointCloudConfig;
   imgList: AnnotationFileList;
-  imgIndex?: number;
+  imgIndex: number;
 }
 
 const layout = {
@@ -279,7 +279,6 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
 const mapStateToProps = (state: AppState) => {
   return {
     imgIndex: state.annotation.imgIndex,
-    ...state,
   };
 };
 
