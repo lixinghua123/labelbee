@@ -12,6 +12,7 @@ import { ILimit, IDefaultSize } from '@labelbee/lb-utils';
 import LimitPopover from './components/limitPopover';
 import _ from 'lodash';
 import { CommonToolUtils, MathUtils } from '@labelbee/lb-annotation';
+import { useDebounceFn } from 'ahooks';
 
 export const ATTRIBUTE_COLORS = [NULL_COLOR].concat(COLORS_ARRAY);
 
@@ -91,9 +92,10 @@ const AttributeList = React.forwardRef((props: IProps, ref) => {
     }
   };
 
+  const { run: keydownEventsDebounce } = useDebounceFn(keyDown, { wait: 200 });
   useEffect(() => {
-    window.addEventListener('keydown', keyDown);
-    return () => window.removeEventListener('keydown', keyDown);
+    window.addEventListener('keydown', keydownEventsDebounce);
+    return () => window.removeEventListener('keydown', keydownEventsDebounce);
   });
 
   const changeColor = (value: string, color: string) => {
@@ -109,8 +111,7 @@ const AttributeList = React.forwardRef((props: IProps, ref) => {
     }
     props.attributeChanged(e.target.value);
   };
-
-  const attributeClickDebounce = _.debounce(attributeClick, 100);
+  const { run: attributeClickDebounce } = useDebounceFn(attributeClick, { wait: 100 });
 
   const checkLock = (e: any, attributeInfo: any) => {
     if (props?.forbidColor) {
