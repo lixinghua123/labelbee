@@ -1,5 +1,5 @@
 import React, { FocusEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Radio, Switch, Tooltip } from 'antd';
+import { Radio, Spin, Switch, Tooltip } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { TextareaWithFooter } from '@/views/MainView/sidebar/TextToolSidebar';
 import {
@@ -297,6 +297,9 @@ const TextInput = (props: IProps) => {
   const [focusIndex, setFocusIndex] = useState(0);
   const [placeholder, setPlaceholder] = useState('');
   const placeholderTimer = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [visibleCount, setVisibleCount] = useState(5); // Initial load
+  const [lazyLoading, setLazyLoading] = useState(false);
   const { audioClipState } = useAudioClipStore();
   const configList = dataList || [{ ...DEFAULT_TEXT_CONFIG_ITEM }];
   let regionsList = regions;
@@ -398,163 +401,186 @@ const TextInput = (props: IProps) => {
     );
   }, [clipTextList, regionsList]);
 
+  const handleScroll = () => {
+    const container = containerRef.current;
+
+    if (container && clipTextConfigurable && regionsList.length > 0 && isCheck) {
+      if (container.clientHeight + container.scrollTop + 1 >= container.scrollHeight) {
+        setLazyLoading(true);
+        loadMore();
+      }
+    }
+  };
+
+  const loadMore = () => {
+    setTimeout(() => {
+      setVisibleCount((prev) => Math.min(prev + 5, regionsListFormat.length));
+      setLazyLoading(false);
+    }, 300);
+  };
+
   return (
-    <>
-      {config?.enablePlaceholderHotkey && (
-        <div className={styles.placeholderHotkey}>
-          <div className={styles.title}>
-            占位符快捷输入
-            <Tooltip
-              overlayStyle={{ maxWidth: 240 }}
-              title={
-                <div>
-                  <div>䦆（Ctrl+1）：</div>
-                  <div style={{ marginBottom: 12 }}>
-                    文字异常，但只根据这个字的形状就可以猜出是什么字
-                  </div>
-                  <div>攫（Ctrl+2）：</div>
-                  <div style={{ marginBottom: 12 }}>
-                    文字异常，且无法根据形状猜字，但能结合上下文语义判断出是什么字
-                  </div>
-                  <div>玃（Ctrl+3）：</div>
-                  <div>完全无法判断是什么字</div>
-                </div>
-              }
-              placement='bottom'
-            >
-              <QuestionCircleOutlined className={styles.questionIcon} />
-            </Tooltip>
-          </div>
-          <Radio.Group value={placeholder}>
-            <Radio.Button value='䦆' onClick={(e: any) => addPlaceholder(e.target.value)}>
-              <div className='label'>
-                <div className='text'>䦆 (视觉)</div>
-                <div className='hotkey'>Ctrl+1</div>
-              </div>
-            </Radio.Button>
-            <Radio.Button value='攫' onClick={(e: any) => addPlaceholder(e.target.value)}>
-              <div className='label'>
-                <div className='text'>攫 (语义)</div>
-                <div className='hotkey'>Ctrl+2</div>
-              </div>
-            </Radio.Button>
-            <Radio.Button value='玃' onClick={(e: any) => addPlaceholder(e.target.value)}>
-              <div className='label'>
-                <div className='text'>玃 (无效)</div>
-                <div className='hotkey'>Ctrl+3</div>
-              </div>
-            </Radio.Button>
-          </Radio.Group>
-        </div>
-      )}
-      <div className={styles.textInputContainer}>
-        <AudioContext audioContext={preContext?.before} />
-
-        {textConfigurable &&
-          _configList.map((i, index) => (
-            <SingleTextInput
-              config={i}
-              key={index}
-              index={index}
-              result={result}
-              updateText={updateText}
-              switchToNextTextarea={switchToNextTextarea}
-              hasMultiple={configList.length > 1}
-              disabled={textInputDisabled}
-              textID={textID}
-              addPlaceholder={addPlaceholder}
-              onFocus={() => setFocusIndex(index)}
-            />
-          ))}
-        {clipTextConfigurable &&
-          regionsList.length > 0 &&
-          regionsListFormat.map((item, index) => {
-            const { clipTextResult } = item;
-            const { id, start, end, attribute } = clipTextResult;
-            const { maxLength = 3000, label, key, required } = item;
-            const text = clipTextResult?.[key];
-            const clipIdMapText = { [clipTextResult.id]: text };
-
-            // 兼容SingleTextInput的props
-            const config = {
-              label: `${label ?? t('textTool')}（${timeFormat(start, 'ss.SSS')} - ${timeFormat(
-                end,
-                'ss.SSS',
-              )}）`,
-              key: id,
-              maxLength,
-            };
-            // 处理按tab无法正常切换问题
-            const regionIndex = (textConfigurable ? _configList.length : 0) + index;
-
-            const attributeColor = getAttributeColor(attribute, clipAttributeList);
-
-            const textStyle = {
-              color: getAttributeFontColor(attribute, clipAttributeList),
-              backgroundColor: attributeColor,
-            };
-            const errorTips = t('LeastCharacterError', {
-              num: 1,
-            });
-            const errorText = required && text.length < 1 ? errorTips : undefined;
-            const attributeText =
-              getAttributeShowText(attribute, [
-                { value: '', key: t('NoAttribute') },
-                ...clipAttributeList,
-              ]) ?? '';
-            return (
-              <SingleTextInput
-                config={config}
-                key={index}
-                index={regionIndex}
-                disabled={textInputDisabled}
-                result={clipIdMapText}
-                updateText={(text: string) => {
-                  updateRegion?.({
-                    ...clipTextResult,
-                    [key]: text,
-                  });
-                }}
-                switchToNextTextarea={() => {
-                  switchToNextTextarea(regionIndex);
-                }}
-                hasMultiple={true}
-                onFocus={() => setFocusIndex(regionIndex)}
-                onFocusStyle={
-                  clipAttributeConfigurable
-                    ? {
-                        borderColor: attributeColor,
-                        boxShadow: `0 0 0 2px ${updateColorOpacity(attributeColor, 0.4)}`,
-                      }
-                    : {}
-                }
-                extra={
-                  clipAttributeConfigurable ? (
-                    <div style={textStyle} className={styles.attribute}>
-                      <LongText text={attributeText} openByText={true} isToolTips={true} />
+    <div className={styles.textInputBox} ref={containerRef} onScroll={handleScroll}>
+      <div className={styles.textInputChild}>
+        {config?.enablePlaceholderHotkey && (
+          <div className={styles.placeholderHotkey}>
+            <div className={styles.title}>
+              占位符快捷输入
+              <Tooltip
+                overlayStyle={{ maxWidth: 240 }}
+                title={
+                  <div>
+                    <div>䦆（Ctrl+1）：</div>
+                    <div style={{ marginBottom: 12 }}>
+                      文字异常，但只根据这个字的形状就可以猜出是什么字
                     </div>
-                  ) : null
+                    <div>攫（Ctrl+2）：</div>
+                    <div style={{ marginBottom: 12 }}>
+                      文字异常，且无法根据形状猜字，但能结合上下文语义判断出是什么字
+                    </div>
+                    <div>玃（Ctrl+3）：</div>
+                    <div>完全无法判断是什么字</div>
+                  </div>
                 }
-                errorText={errorText}
-              />
-            );
-          })}
-        <AudioContext audioContext={preContext?.after} />
-        {/* 文本显示按钮，不会存储在配置或结果中 */}
-        {toggleShowText && (
-          <div className={styles.switchItem}>
-            {t('toggleShowText')}
-            <Switch
-              style={{ alignSelf: 'center' }}
-              checked={showText}
-              onChange={(v) => {
-                toggleShowText(v);
-              }}
-            />
+                placement='bottom'
+              >
+                <QuestionCircleOutlined className={styles.questionIcon} />
+              </Tooltip>
+            </div>
+            <Radio.Group value={placeholder}>
+              <Radio.Button value='䦆' onClick={(e: any) => addPlaceholder(e.target.value)}>
+                <div className='label'>
+                  <div className='text'>䦆 (视觉)</div>
+                  <div className='hotkey'>Ctrl+1</div>
+                </div>
+              </Radio.Button>
+              <Radio.Button value='攫' onClick={(e: any) => addPlaceholder(e.target.value)}>
+                <div className='label'>
+                  <div className='text'>攫 (语义)</div>
+                  <div className='hotkey'>Ctrl+2</div>
+                </div>
+              </Radio.Button>
+              <Radio.Button value='玃' onClick={(e: any) => addPlaceholder(e.target.value)}>
+                <div className='label'>
+                  <div className='text'>玃 (无效)</div>
+                  <div className='hotkey'>Ctrl+3</div>
+                </div>
+              </Radio.Button>
+            </Radio.Group>
           </div>
         )}
+        <div className={styles.textInputContainer}>
+          <AudioContext audioContext={preContext?.before} />
+
+          {textConfigurable &&
+            _configList.map((i, index) => (
+              <SingleTextInput
+                config={i}
+                key={index}
+                index={index}
+                result={result}
+                updateText={updateText}
+                switchToNextTextarea={switchToNextTextarea}
+                hasMultiple={configList.length > 1}
+                disabled={textInputDisabled}
+                textID={textID}
+                addPlaceholder={addPlaceholder}
+                onFocus={() => setFocusIndex(index)}
+              />
+            ))}
+          {clipTextConfigurable && regionsList.length > 0 && (
+            <>
+              {regionsListFormat.slice(0, visibleCount).map((item, index) => {
+                const { clipTextResult } = item;
+                const { id, start, end, attribute } = clipTextResult;
+                const { maxLength = 3000, label, key, required } = item;
+                const text = clipTextResult?.[key];
+                const clipIdMapText = { [clipTextResult.id]: text };
+
+                // 兼容SingleTextInput的props
+                const config = {
+                  label: `${label ?? t('textTool')}（${timeFormat(start, 'ss.SSS')} - ${timeFormat(
+                    end,
+                    'ss.SSS',
+                  )}）`,
+                  key: id,
+                  maxLength,
+                };
+                // 处理按tab无法正常切换问题
+                const regionIndex = (textConfigurable ? _configList.length : 0) + index;
+
+                const attributeColor = getAttributeColor(attribute, clipAttributeList);
+
+                const textStyle = {
+                  color: getAttributeFontColor(attribute, clipAttributeList),
+                  backgroundColor: attributeColor,
+                };
+                const errorTips = t('LeastCharacterError', {
+                  num: 1,
+                });
+                const errorText = required && text.length < 1 ? errorTips : undefined;
+                const attributeText =
+                  getAttributeShowText(attribute, [
+                    { value: '', key: t('NoAttribute') },
+                    ...clipAttributeList,
+                  ]) ?? '';
+                return (
+                  <SingleTextInput
+                    config={config}
+                    key={index}
+                    index={regionIndex}
+                    disabled={textInputDisabled}
+                    result={clipIdMapText}
+                    updateText={(text: string) => {
+                      updateRegion?.({
+                        ...clipTextResult,
+                        [key]: text,
+                      });
+                    }}
+                    switchToNextTextarea={() => {
+                      switchToNextTextarea(regionIndex);
+                    }}
+                    hasMultiple={true}
+                    onFocus={() => setFocusIndex(regionIndex)}
+                    onFocusStyle={
+                      clipAttributeConfigurable
+                        ? {
+                            borderColor: attributeColor,
+                            boxShadow: `0 0 0 2px ${updateColorOpacity(attributeColor, 0.4)}`,
+                          }
+                        : {}
+                    }
+                    extra={
+                      clipAttributeConfigurable ? (
+                        <div style={textStyle} className={styles.attribute}>
+                          <LongText text={attributeText} openByText={true} isToolTips={true} />
+                        </div>
+                      ) : null
+                    }
+                    errorText={errorText}
+                  />
+                );
+              })}
+              {lazyLoading && <Spin size='small' />}
+            </>
+          )}
+          <AudioContext audioContext={preContext?.after} />
+          {/* 文本显示按钮，不会存储在配置或结果中 */}
+          {toggleShowText && (
+            <div className={styles.switchItem}>
+              {t('toggleShowText')}
+              <Switch
+                style={{ alignSelf: 'center' }}
+                checked={showText}
+                onChange={(v) => {
+                  toggleShowText(v);
+                }}
+              />
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

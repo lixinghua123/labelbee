@@ -20,6 +20,7 @@ import {
   IPointCloudBoxRect,
   IPointCloud2DRectOperationViewRect,
   IPointCloudBox,
+  ImgPosUtils,
 } from '@labelbee/lb-utils';
 import { selectSpecifiedRectsFromTopViewSelectedIds } from './util';
 import { useUpdateRectList } from './useUpdateRectList';
@@ -415,22 +416,27 @@ const PointCloud2DRectOperationView = (props: IPointCloud2DRectOperationViewProp
       // Center the view by selectedID
       if (!selectedID || !needUpdateCenter) {
         setNeedUpdateCenter(true);
+        // during disconnection 
+        if (shouldExcludePointCloudBoxListUpdate) {
+          operation.current.setHoverRectID('');
+          operation.current.render();
+        }
         return;
       }
-      const { rectList, size, zoom } = operation.current;
+      const { rectList, size, zoom, imgNode } = operation.current;
       // Use boxId for a normal connection, and use extId when disconnected.
       const rect = rectList.find((el: any) => el.boxID === selectedID || el.extId === selectedID);
-      if (!rect) {
+      const pos = ImgPosUtils.getBasicRecPos(imgNode, rect, size, 0.5);
+      if (!pos) {
         setNeedUpdateCenter(true);
         return;
       }
-      const centerPoint = {
-        x: rect.x + rect.width / 2,
-        y: rect.y + rect.height / 2,
-      };
-      const currentPos = MathUtils.getCurrentPosFromRectCenter(size, centerPoint, zoom);
-      operation.current.setHoverRectID(rect.id);
-      operation.current.setCurrentPos(currentPos);
+      // during disconnection 
+      if (shouldExcludePointCloudBoxListUpdate) {
+        operation.current.setHoverRectID(rect.id);
+      }
+      operation.current.setCurrentPos(pos.currentPos);
+      operation.current.setZoom(pos.innerZoom);
       operation.current.renderBasicCanvas();
       operation.current.render();
     },

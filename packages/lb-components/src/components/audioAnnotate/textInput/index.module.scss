@@ -23,13 +23,13 @@
   @include fontStyle;
   font-size: 14px;
 
-  .labelText{
+  .labelText {
     display: flex;
     overflow: hidden;
     width: 60%;
     align-items: center;
 
-    .titleText{
+    .titleText {
       max-width: calc(100% - 20px);
       overflow: hidden;
     }
@@ -44,6 +44,7 @@
     line-height: 1;
     content: '*';
   }
+
   .extra {
     float: right;
     margin-right: 5px;
@@ -67,7 +68,7 @@
     font-size: 12px;
     opacity: 1;
 
-    > span {
+    >span {
       line-height: 16px;
     }
 
@@ -150,25 +151,30 @@
 .placeholderHotkey {
   padding: 20px;
   border-bottom: 1px solid #eee;
+
   .title {
     margin-bottom: 8px;
     color: #333;
     font-size: 12px;
   }
+
   .questionIcon {
     margin-left: 8px;
     color: #999;
     cursor: pointer;
+
     &:hover {
       color: #666fff;
     }
   }
+
   :global {
     .ant-radio-group {
       display: flex;
       justify-content: space-between;
       width: 100%;
     }
+
     .ant-radio-button-wrapper {
       width: 60px;
       height: 60px;
@@ -178,18 +184,22 @@
       background: #fff;
       border: 1px solid #ccc !important;
       border-radius: 2px;
+
       &:hover {
         box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.08);
       }
+
       &.ant-radio-button-wrapper-checked {
         .text {
           color: #666fff;
         }
       }
+
       &::before {
         display: none;
       }
     }
+
     .label {
       display: flex;
       flex-wrap: wrap;
@@ -197,9 +207,11 @@
       justify-content: center;
       overflow: hidden;
     }
+
     .text {
       color: #333;
     }
+
     .hotkey {
       width: 44px;
       height: 20px;
@@ -233,4 +245,17 @@
   &.disabled {
     cursor: not-allowed;
   }
+}
+
+
+.textInputBox {
+  flex: 1;
+  overflow: scroll;
+  text-align: center;
+  .textInputChild{
+
+    display: inline-block;
+    width: 65%;
+  }
+
 }

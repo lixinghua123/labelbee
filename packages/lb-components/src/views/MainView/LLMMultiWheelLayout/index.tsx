@@ -5,6 +5,7 @@ import { classnames } from '@/utils';
 import { getClassName } from '@/utils/dom';
 import { Layout } from 'antd/es';
 import _ from 'lodash';
+import { Resizable } from 're-resizable';
 import React from 'react';
 import Sidebar from '../sidebar';
 import ToolFooter from '../toolFooter';
@@ -36,10 +37,22 @@ const LLMMultiWheelLayout: React.FC<AppProps & IProps> = (props) => {
         />
         <ToolFooter style={props.style?.footer} mode={props.mode} footer={props?.footer} />
       </Content>
-      <Sider className={`${layoutCls}__side`} width={600} style={{ position: 'relative' }}>
-        <Sidebar sider={props?.sider} checkMode={props?.checkMode} />
-        {props.drawLayerSlot?.({})}
-      </Sider>
+      <Resizable
+        defaultSize={{
+          width: 600,
+        }}
+        maxWidth='95%'
+        enable={{ left: true }}
+      >
+        <Sider
+          className={`${layoutCls}__side`}
+          width='100%'
+          style={{ position: 'relative', height: '100%' }}
+        >
+          <Sidebar sider={props?.sider} checkMode={props?.checkMode} />
+          {props.drawLayerSlot?.({})}
+        </Sider>
+      </Resizable>
     </Layout>
   );
 };

@@ -85,7 +85,7 @@ const PointCloudAnnotationView = (props: IProps) => {
 
       // Add Init Box
       boxParamsList.forEach((v: IPointCloudBox) => {
-        instance.current?.generateBox(v, v.id);
+        instance.current?.generateBox(v);
       });
     }
     return () => {

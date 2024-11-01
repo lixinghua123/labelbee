@@ -163,6 +163,8 @@ export class PointCloud extends EventListener {
 
   private geometry: THREE.BufferGeometry;
 
+  private highlightColor = 0xffff00;
+
   constructor({
     container,
     noAppend,
@@ -242,18 +244,43 @@ export class PointCloud extends EventListener {
         child.children.forEach((grandson) => {
           if (grandson instanceof THREE.Mesh) {
             clickMeshes.push(grandson);
+          } else {
+            this.updateMaterialColor(grandson, child.userData.defaultColor);
           }
         });
       });
       const intersects = this.raycaster.intersectObjects(clickMeshes, false);
       if (intersects.length > 0) {
-        const intersectedObject = intersects[0].object;
+        const parentGroup = intersects[0].object.parent;
+        // Find the BoxHelper and change the color
+        parentGroup?.children.forEach((child) => {
+          this.updateMaterialColor(child, this.highlightColor);
+        });
         this.pipe?.setNeedUpdateCenter(false);
-        this.pipe?.setSelectedIDs(intersectedObject.userData.selectedID);
+        this.pipe?.setSelectedIDs(parentGroup?.userData.selectedID);
       } else {
         this.pipe?.setSelectedIDs(undefined);
       }
+      this.render();
     });
+  }
+
+  public setHighlightColor(selectedId?: string) {
+    this.scene.children.forEach((child) => {
+      if (!(child instanceof THREE.Group)) return;
+      const color = selectedId && child.name === `box${selectedId}` ? this.highlightColor : child.userData.defaultColor;
+      child.children.forEach((grandson) => {
+        this.updateMaterialColor(grandson, color);
+      });
+    });
+  }
+
+  private updateMaterialColor(child: THREE.Object3D<THREE.Event>, color: THREE.ColorRepresentation) {
+    if (child instanceof THREE.BoxHelper) {
+      (child.material as THREE.LineBasicMaterial).color.set(color);
+    } else if (child instanceof THREE.Sprite) {
+      (child.material as THREE.SpriteMaterial).color.set(color);
+    }
   }
 
   public setHandlerPipe(pipe: IPipeTypes) {
@@ -596,13 +623,13 @@ export class PointCloud extends EventListener {
     const arrow = this.generateBoxArrow(boxParams);
 
     // Temporarily hide
-    const boxID = this.generateBoxTrackID(boxParams);
+    const boxID = this.generateBoxTrackID(boxParams, color);
     if (boxID) {
       group.add(boxID);
     }
 
     // 生成并添加attribute标签
-    const attributeLabel = this.generateBoxAttributeLabel(boxParams);
+    const attributeLabel = this.generateBoxAttributeLabel(boxParams, color);
     if (attributeLabel) {
       group.add(attributeLabel);
     }
@@ -619,9 +646,8 @@ export class PointCloud extends EventListener {
     const clickGeometry = new THREE.BoxGeometry(width, height, depth);
     const clickMaterial = new THREE.MeshBasicMaterial({ visible: false });
     const clickMesh = new THREE.Mesh(clickGeometry, clickMaterial);
-    clickMesh.userData = { selectedID: id };
     group.add(clickMesh);
-
+    group.userData = { defaultColor: color, selectedID: id };
     this.scene.add(group);
   };
 
@@ -1389,8 +1415,7 @@ export class PointCloud extends EventListener {
     const dir = new THREE.Vector3(1, 0, 0);
     const origin = new THREE.Vector3(width / 2, 0, 0);
     const arrowLen = 2;
-    const hex = 0xffff00;
-    const arrowHelper = new THREE.ArrowHelper(dir, origin, arrowLen, hex);
+    const arrowHelper = new THREE.ArrowHelper(dir, origin, arrowLen, this.highlightColor);
     arrowHelper.visible = this.showDirection;
 
     return arrowHelper;
@@ -1402,7 +1427,7 @@ export class PointCloud extends EventListener {
    * @param scaleFactor  scale size
    * @returns  { sprite, canvasWidth, canvasHeight }
    */
-  public generateLabel = (text: string, scaleFactor: number) => {
+  public generateLabel = (text: string, scaleFactor: number, color: THREE.ColorRepresentation) => {
     const canvas = this.getTextCanvas(text);
     const texture = new THREE.Texture(canvas);
 
@@ -1415,7 +1440,7 @@ export class PointCloud extends EventListener {
     const canvasWidth = canvas.width / window.devicePixelRatio;
     const canvasHeight = canvas.height / window.devicePixelRatio;
 
-    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthWrite: false });
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthWrite: false, color });
     const sprite = new THREE.Sprite(spriteMaterial);
     sprite.scale.set(canvasWidth / scaleFactor, canvasHeight / scaleFactor, 1);
 
@@ -1427,10 +1452,10 @@ export class PointCloud extends EventListener {
    * @param boxParams
    * @returns sprite
    */
-  public generateBoxTrackID = (boxParams: IPointCloudBox) => {
+  public generateBoxTrackID = (boxParams: IPointCloudBox, color: THREE.ColorRepresentation) => {
     if (!boxParams.trackID) return;
 
-    const { sprite } = this.generateLabel(boxParams.trackID.toString(), 50);
+    const { sprite } = this.generateLabel(boxParams.trackID.toString(), 50, color);
 
     sprite.position.set(-boxParams.width / 2, 0, boxParams.depth / 2 + 0.5);
 
@@ -1442,13 +1467,13 @@ export class PointCloud extends EventListener {
    * @param boxParams
    * @returns sprite
    */
-  public generateBoxAttributeLabel = (boxParams: IPointCloudBox) => {
+  public generateBoxAttributeLabel = (boxParams: IPointCloudBox, color: THREE.ColorRepresentation) => {
     if (!boxParams.attribute || this.hiddenText) return;
 
     const classLabel = this.findSubAttributeLabel(boxParams, this.config);
     const subAttributeLabel = classLabel ? `${boxParams.attribute}\n${classLabel}` : `${boxParams.attribute}`;
 
-    const { sprite, canvasHeight } = this.generateLabel(subAttributeLabel, 100);
+    const { sprite, canvasHeight } = this.generateLabel(subAttributeLabel, 100, color);
 
     sprite.position.set(-boxParams.width / 2, 0, -boxParams.depth / 2 - canvasHeight / 150);
 

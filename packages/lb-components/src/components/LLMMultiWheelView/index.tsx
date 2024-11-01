@@ -49,6 +49,7 @@ export const LLMMultiWheelSourceView: React.FC<ILLMMultiWheelSourceViewProps> = 
           style={{
             display: 'flex',
             justifyContent: 'flex-end',
+            margin: '10px',
           }}
         >
           <ToggleDataFormatType

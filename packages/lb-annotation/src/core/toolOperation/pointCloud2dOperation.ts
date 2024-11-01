@@ -5,7 +5,7 @@
  * @createdate 2022-07-11
  * @author Ron <ron.f.luo@gmail.com>
  */
-import _ from 'lodash';
+import _, { isNumber } from 'lodash';
 import { IPointCloudConfig, toolStyleConverter, UpdatePolygonByDragList, INVALID_COLOR } from '@labelbee/lb-utils';
 import { EDragTarget, ESortDirection, DEFAULT_TEXT_OFFSET } from '@/constant/annotation';
 import { EPolygonPattern } from '@/constant/tool';
@@ -237,7 +237,7 @@ class PointCloud2dOperation extends PolygonOperation {
           isClose: true,
           lineType: this.config?.lineType,
         });
-        if (polygon?.trackID) {
+        if (isNumber(polygon?.trackID) && polygon?.trackID >= 0) {
           this.renderdrawTrackID(polygon);
         }
         // Only the rectangle shows the direction.
@@ -276,7 +276,7 @@ class PointCloud2dOperation extends PolygonOperation {
       // Only the rectangle shows the direction.
       if (selectedPolygon.isRect === true && this.showDirectionLine === true) {
         this.renderRectPolygonDirection(polygon);
-        if (selectedPolygon?.trackID) {
+        if (isNumber(selectedPolygon?.trackID) && selectedPolygon?.trackID >= 0) {
           this.renderdrawTrackID(selectedPolygon);
         }
       }

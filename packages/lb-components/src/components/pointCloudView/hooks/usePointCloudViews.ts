@@ -580,7 +580,8 @@ export const synchronizeTopView = (
   }
 
   // Control the 3D view data to create box
-  mainViewInstance.generateBox(newBoxParams, newPolygon.id);
+  mainViewInstance.generateBox(newBoxParams);
+  mainViewInstance.setHighlightColor(newBoxParams.id);
   mainViewInstance.render();
 
   const { pointCloud2dOperation, pointCloudInstance } = topViewInstance;

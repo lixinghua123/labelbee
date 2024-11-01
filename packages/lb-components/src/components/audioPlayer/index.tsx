@@ -572,6 +572,7 @@ export const AudioPlayer = ({
 
     wavesurfer.on('error', () => {
       setFileError(true);
+      setLoading(false)
       onLoaded?.({
         hasError: true,
       });

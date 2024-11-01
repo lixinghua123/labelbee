@@ -125,14 +125,19 @@ const useUpdatePointCloudColor = (setResourceLoading: any, config: any) => {
        * Update the relevant content of the original point cloud again
        * This method maintains the same judgment logic as the original topViewSlectedChanged, and only triggers an update when one box is selected
        */
+      let newSelectedBox;
       if (selectedIDs && selectedIDs.length === 1) {
-        const newSelectedBox = pointCloudBoxList.find((item) => item.id === selectedIDs[0]);
+        newSelectedBox = pointCloudBoxList.find((item) => item.id === selectedIDs[0]);
         topViewSelectedChanged({
           trigger,
           newSelectedBox,
         });
       }
       mainViewInstance.generateBoxes(pointCloudBoxList);
+      if (newSelectedBox) {
+        mainViewInstance.setHighlightColor(newSelectedBox.id);
+        mainViewInstance.render();
+      }
     }
 
     /**

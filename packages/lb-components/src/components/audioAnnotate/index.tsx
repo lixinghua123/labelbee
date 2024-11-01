@@ -111,27 +111,23 @@ const AudioTextToolTextarea = ({
   clipTextList,
 }: any) => {
   return (
-    <div className={styles.textareaContainer}>
-      <div className={styles.textareaContent}>
-        <TextInput
-          isCheck={isCheck}
-          result={result?.value}
-          textInputDisabled={inputDisabled}
-          textID={result?.id || 0}
-          updateText={updateText}
-          configList={configList}
-          autofocus={!inputDisabled && autofocus}
-          preContext={preContext}
-          regions={result?.regions}
-          clipAttributeConfigurable={clipAttributeConfigurable}
-          clipTextConfigurable={clipTextConfigurable}
-          textConfigurable={textConfigurable}
-          updateRegion={updateRegion}
-          clipAttributeList={clipAttributeList}
-          clipTextList={clipTextList}
-        />
-      </div>
-    </div>
+    <TextInput
+      isCheck={isCheck}
+      result={result?.value}
+      textInputDisabled={inputDisabled}
+      textID={result?.id || 0}
+      updateText={updateText}
+      configList={configList}
+      autofocus={!inputDisabled && autofocus}
+      preContext={preContext}
+      regions={result?.regions}
+      clipAttributeConfigurable={clipAttributeConfigurable}
+      clipTextConfigurable={clipTextConfigurable}
+      textConfigurable={textConfigurable}
+      updateRegion={updateRegion}
+      clipAttributeList={clipAttributeList}
+      clipTextList={clipTextList}
+    />
   );
 };
 
