@@ -293,3 +293,12 @@ export enum EOperationMode {
   General = 1, // Common
   MultiMove = 2, // Experimental
 }
+
+/** rectToll name for LocalStorage */
+export const RECT_TOOL_MODE_NAME = 'rect_tool_mode';
+
+/** rectToll mode*/
+export enum ERectToolModeType {
+  ThreePoints = 'three_points',
+  TwoPoints = 'two_points',
+}

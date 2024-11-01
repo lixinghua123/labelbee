@@ -309,6 +309,16 @@ $prefix: bee;
     margin-left: 16px;
   }
 
+  &__multiBox {
+    display: flex;
+    align-items: center;
+    margin: 0 5px;
+  }
+
+  &__dropdown .ant-dropdown-menu-item:not(.ant-dropdown-menu-item-selected) {
+    color: #999999;
+  }
+
   &__singleTool {
     max-width: 20px;
     max-height: 20px;

@@ -13,19 +13,33 @@ import pointSvg from '@/assets/annotation/pointTool/icon_point.svg';
 import pointASvg from '@/assets/annotation/pointTool/icon_point_a.svg';
 import PolygonASvg from '@/assets/annotation/polygonTool/icon_polygon_a.svg';
 import PolygonSvg from '@/assets/annotation/polygonTool/icon_polygon.svg';
-import rectSvg from '@/assets/annotation/rectTool/icon_rect.svg';
-import rectASvg from '@/assets/annotation/rectTool/icon_rect_a.svg';
 import { cTool } from '@labelbee/lb-annotation';
 import classnames from 'classnames';
 import { useTranslation } from 'react-i18next';
+import type { MenuProps } from 'antd';
+import { Dropdown } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
+import { ReactComponent as TwoPointsRectSvg } from '@/assets/annotation/rectTool/two_points_rect.svg';
+import { ReactComponent as ThreePointsRectSvg } from '@/assets/annotation/rectTool/three_points_rect.svg';
+import { useLocalStorageState } from 'ahooks';
 
-const { EPointCloudName, TOOL_NAME, TOOL_NAME_EN } = cTool;
+const { EPointCloudName, TOOL_NAME, TOOL_NAME_EN, ERectToolModeType, RECT_TOOL_MODE_NAME } = cTool;
 
 const toolList = [
   {
     toolName: EToolName.Rect,
-    commonSvg: rectSvg,
-    selectedSvg: rectASvg,
+    dropdownItems: [
+      {
+        key: ERectToolModeType.ThreePoints,
+        icon: <ThreePointsRectSvg />,
+        label: '三点画矩形',
+      },
+      {
+        key: ERectToolModeType.TwoPoints,
+        icon: <TwoPointsRectSvg />,
+        label: '两点画矩形',
+      },
+    ],
   },
   {
     toolName: EToolName.Polygon,
@@ -73,6 +87,19 @@ export const ToolIcons = ({
 
   const hasMultiTools = renderTools.length > 1;
 
+  const [rectToolMode, setRectToolMode] = useLocalStorageState(RECT_TOOL_MODE_NAME, {
+    defaultValue: ERectToolModeType.ThreePoints as string,
+    serializer: (v) => v ?? '',
+    deserializer: (v) => v,
+  });
+
+  const SelectedRectSvg =
+    rectToolMode === ERectToolModeType.TwoPoints ? TwoPointsRectSvg : ThreePointsRectSvg;
+
+  const toggleTwoOrThreePointRect: MenuProps['onClick'] = (e) => {
+    setRectToolMode(e.key);
+  };
+
   return (
     <div className={`${sidebarCls}__level`}>
       {renderTools.map((tool) => {
@@ -83,10 +110,30 @@ export const ToolIcons = ({
             key={tool.toolName}
             onClick={() => onChange?.(tool.toolName)}
           >
-            <img
-              className={`${sidebarCls}__singleTool`}
-              src={isSelected ? tool?.selectedSvg : tool?.commonSvg}
-            />
+            {tool.dropdownItems ? (
+              <Dropdown
+                overlayClassName={`${sidebarCls}__dropdown`}
+                menu={{
+                  items: tool.dropdownItems,
+                  selectable: true,
+                  defaultSelectedKeys: rectToolMode ? [rectToolMode] : [],
+                  onClick: toggleTwoOrThreePointRect,
+                }}
+              >
+                <div
+                  className={`${sidebarCls}__multiBox`}
+                  style={{ color: isSelected ? '#666fff' : '#999999' }}
+                >
+                  <SelectedRectSvg />
+                  <DownOutlined />
+                </div>
+              </Dropdown>
+            ) : (
+              <img
+                className={`${sidebarCls}__singleTool`}
+                src={isSelected ? tool?.selectedSvg : tool?.commonSvg}
+              />
+            )}
             <span
               className={classnames({
                 [`${sidebarCls}__toolOption__selected`]: isSelected,
