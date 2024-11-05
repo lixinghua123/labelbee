@@ -90,7 +90,9 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
       config.inputList?.forEach((data) => {
         const subData = values[data.value];
         if (subData !== undefined) {
-          Object.assign(newSubAttribute, { [data.value]: subData });
+          // Compatible with multiple selections
+          const mapData = Array.isArray(subData) ? subData.join(';') : subData;
+          Object.assign(newSubAttribute, { [data.value]: mapData });
         }
       });
 
@@ -260,7 +262,7 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
               <div key={v.value} style={attributeStyle}>
                 <PrefixTag text={v.key} />
                 <Form.Item name={v.value} noStyle={true} required={false}>
-                  <Select style={selectStyle}>
+                  <Select style={selectStyle} mode={v.isMulti ? 'multiple' : undefined}>
                     {v.subSelected?.map((subData) => (
                       <Select.Option key={subData.value} value={subData.value}>
                         {subData.key}
