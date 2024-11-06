@@ -1502,14 +1502,21 @@ export class PointCloud extends EventListener {
       if (!classInfo || !classInfo.subSelected) return; // If the type of the secondary attribute cannot be found, it will be returned directly
 
       const { key: classKey, subSelected } = classInfo;
+      const subValues: string[] = [];
       subSelected.forEach((item) => {
         const subAttributeKey = boxParams.subAttribute?.[key];
-
-        if (subAttributeKey?.includes(item.value)) {
-          if (resultStr) resultStr += '、';
-          resultStr += `${classKey}:${item.key}`;
+        // If subAttributeKey is an array, use it directly; Otherwise, use split to convert it into an array
+        const subAttributeKeyList = Array.isArray(subAttributeKey) ? subAttributeKey : subAttributeKey?.split(';');
+        if (subAttributeKeyList?.includes(item.value)) {
+          subValues.push(item.key);
         }
       });
+
+      // If there are matching sub items in the current group, concatenate them into the result
+      if (subValues.length > 0) {
+        if (resultStr) resultStr += '、';
+        resultStr += `${classKey}:${subValues.join('、')}`;
+      }
     });
 
     return resultStr;

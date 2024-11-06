@@ -132,12 +132,15 @@ const PointCloud3D: React.FC<IA2MapStateProps> = ({
   const [showDirection, setShowDirection] = useState(true);
   const [isEnlarge, setIsEnlarge] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { initPointCloud3d } = usePointCloudViews();
+  const { initPointCloud3d, generateRects } = usePointCloudViews();
   const size = useSize(ref);
   const { t } = useTranslation();
   const { value: toolStyle } = useToolStyleContext();
   const { hiddenText } = toolStyle || {};
   const { updatePointCloudAttribute } = usePointCloudAttribute(setResourceLoading, config);
+  const { updateSelectedBox } = useSingleBox({
+    generateRects,
+  });
 
   useEffect(() => {
     let pointCloud = ptCtx.mainViewInstance;
@@ -218,11 +221,18 @@ const PointCloud3D: React.FC<IA2MapStateProps> = ({
         const boxParamsList = PointCloudUtils.getBoxParamsFromResultList(currentData.result);
         const currentSelectInfo = boxParamsList.find((item) => item.id === ptCtx.selectedID);
         if (currentSelectInfo) {
+          // Update the border drawing position of the rectangle in the top view of the current page
+          ptCtx.topViewInstance?.updatePolygonList(boxParamsList, undefined);
           updatePointCloudAttribute(currentSelectInfo.attribute);
+          // Update the size change of the currently selected rectangle
+          updateSelectedBox(currentSelectInfo);
+          // Because updatePolygonList will reset the selected state, it is necessary to reset the current rectangle selection
+          ptCtx.setSelectedIDs(currentSelectInfo.id);
         }
         ptCtx.setPointCloudValid(jsonParser(currentData.result)?.valid);
         ptCtx.setPointCloudResult(boxParamsList);
         ptCtx.setRectList(rectParamsList);
+        // Update the box of 3D view
         pointCloud.generateBoxes(boxParamsList);
       }
     }
