@@ -49,7 +49,7 @@ const CheckBoxList = ({ tagItem, selectedTags, handleChange, disabeledAll }: ICh
             })}
           >
             <span className={styles.tagItem}>
-              <LongText text={tag?.key} openByText={true} />
+              <LongText text={tag?.key} openByText={true} maxWordCount={10} />
             </span>
           </CheckableTag>
         ))}
@@ -72,7 +72,7 @@ const CheckBoxList = ({ tagItem, selectedTags, handleChange, disabeledAll }: ICh
       {subSelected.map((tag) => (
         <Radio value={tag?.value} key={tag?.value} disabled={disabled}>
           <span className={styles.tagItem}>
-            <LongText text={tag?.key} openByText={true} />
+            <LongText text={tag?.key} openByText={true} maxWordCount={10} />
           </span>
         </Radio>
       ))}
