@@ -185,95 +185,98 @@ const UnifyParamsModal = ({ id, visible, onCancel, config, imgList, imgIndex }: 
       onOk={onOk}
       wrapClassName='labelbee-custom-modal'
     >
-      <Form {...layout} form={form} onFinish={onFinish}>
-        <Form.Item name='id' label={t('UnifyTrackID')}>
-          {id}
-        </Form.Item>
-
-        <Form.Item label={t('UnifyAttributeRange')} required={true}>
-          <Form.Item
-            style={{ display: 'inline-block' }}
-            rules={defaultNumberRules}
-            name='prevPage'
-            noStyle={true}
-            initialValue={1} // First Page
-          >
-            <InputNumber
-              precision={0}
-              min={1}
-              style={{ width: '80px' }}
-              onChange={() => recalculateSize()}
-            />
+      <>
+        <div style={{ marginBottom: '20px', color: '#f00' }}>{t('UnifyParamsTips')}</div>
+        <Form {...layout} form={form} onFinish={onFinish}>
+          <Form.Item name='id' label={t('UnifyTrackID')}>
+            {id}
           </Form.Item>
-          <span
-            style={{
-              display: 'inline-block',
-              width: '24px',
-              textAlign: 'center',
-            }}
-          >
-            -
-          </span>
-          <Form.Item
-            style={{ display: 'inline-block' }}
-            rules={defaultNumberRules}
-            name='nextPage'
-            noStyle={true}
-            initialValue={imgList.length} // Last Page
-          >
-            <InputNumber
-              precision={0}
-              min={1}
-              style={{ width: '80px' }}
-              onChange={() => recalculateSize()}
-            />
-          </Form.Item>
-          <span
-            style={{
-              display: 'inline-block',
-              width: '40x',
-              marginLeft: '10px',
-              textAlign: 'center',
-            }}
-          >
-            {t('Page')}
-          </span>
-        </Form.Item>
 
-        <Form.Item name='UnifySize' label={t('UnifySize')}>
-          {sizeShow()}
-        </Form.Item>
-
-        <Form.Item label={t('UnifyTag')} required={true}>
-          <div style={attributeStyle}>
-            <PrefixTag text={t('Attribute')} />
-            <Form.Item name='attribute' noStyle={true} rules={defaultSelectedAttribute}>
-              <Select style={selectStyle}>
-                {config.attributeList.map((v) => (
-                  <Select.Option key={v.value} value={v.value}>
-                    {v.key}
-                  </Select.Option>
-                ))}
-              </Select>
+          <Form.Item label={t('UnifyAttributeRange')} required={true}>
+            <Form.Item
+              style={{ display: 'inline-block' }}
+              rules={defaultNumberRules}
+              name='prevPage'
+              noStyle={true}
+              initialValue={1} // First Page
+            >
+              <InputNumber
+                precision={0}
+                min={1}
+                style={{ width: '80px' }}
+                onChange={() => recalculateSize()}
+              />
             </Form.Item>
-          </div>
-          {config.secondaryAttributeConfigurable &&
-            config.inputList.map((v) => (
-              <div key={v.value} style={attributeStyle}>
-                <PrefixTag text={v.key} />
-                <Form.Item name={v.value} noStyle={true} required={false}>
-                  <Select style={selectStyle} mode={v.isMulti ? 'multiple' : undefined}>
-                    {v.subSelected?.map((subData) => (
-                      <Select.Option key={subData.value} value={subData.value}>
-                        {subData.key}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </div>
-            ))}
-        </Form.Item>
-      </Form>
+            <span
+              style={{
+                display: 'inline-block',
+                width: '24px',
+                textAlign: 'center',
+              }}
+            >
+              -
+            </span>
+            <Form.Item
+              style={{ display: 'inline-block' }}
+              rules={defaultNumberRules}
+              name='nextPage'
+              noStyle={true}
+              initialValue={imgList.length} // Last Page
+            >
+              <InputNumber
+                precision={0}
+                min={1}
+                style={{ width: '80px' }}
+                onChange={() => recalculateSize()}
+              />
+            </Form.Item>
+            <span
+              style={{
+                display: 'inline-block',
+                width: '40x',
+                marginLeft: '10px',
+                textAlign: 'center',
+              }}
+            >
+              {t('Page')}
+            </span>
+          </Form.Item>
+
+          <Form.Item name='UnifySize' label={t('UnifySize')}>
+            {sizeShow()}
+          </Form.Item>
+
+          <Form.Item label={t('UnifyTag')} required={true}>
+            <div style={attributeStyle}>
+              <PrefixTag text={t('Attribute')} />
+              <Form.Item name='attribute' noStyle={true} rules={defaultSelectedAttribute}>
+                <Select style={selectStyle}>
+                  {config.attributeList.map((v) => (
+                    <Select.Option key={v.value} value={v.value}>
+                      {v.key}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </div>
+            {config.secondaryAttributeConfigurable &&
+              config.inputList.map((v) => (
+                <div key={v.value} style={attributeStyle}>
+                  <PrefixTag text={v.key} />
+                  <Form.Item name={v.value} noStyle={true} required={false}>
+                    <Select style={selectStyle} mode={v.isMulti ? 'multiple' : undefined}>
+                      {v.subSelected?.map((subData) => (
+                        <Select.Option key={subData.value} value={subData.value}>
+                          {subData.key}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+              ))}
+          </Form.Item>
+        </Form>
+      </>
     </Modal>
   );
 };
