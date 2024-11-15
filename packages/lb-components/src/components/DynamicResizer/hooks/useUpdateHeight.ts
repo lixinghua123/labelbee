@@ -1,152 +1,163 @@
-import { useEffect, useMemo, useState, RefObject, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLocalStorageState } from 'ahooks';
-// Set minimum height to avoid magic numbers
-const MINIMUM_HEIGHT = 0.00001;
+import { DragProps } from '../types/interface';
+import { calcMaxSize, calcMinSize, adjustDefaultSize } from '../utils';
 
-const useUpdateHeight = (
-  containerRef: RefObject<HTMLDivElement>,
-  minTopHeight: number,
-  minBottomHeight: number,
-  defaultHeight: number,
-  cacheKey: string,
-) => {
-  // The height of the top and bottom areas
-  const [topHeight, setTopHeight] = useState<number>(0);
-  const [bottomHeight, setBottomHeight] = useState<number>(0);
-  // Maximum and minimum height restrictions
-  const [limitMinTopHeight, setLimitMinTopHeight] = useState<number>(0);
-  const [limitMinBottomHeight, setLimitMinBottomHeight] = useState<number>(0);
+const useUpdateHeight = ({
+  containerRef,
+  direction,
+  defaultHeight = 10,
+  defaultWidth = 10,
+  minTopHeight = 10,
+  minBottomHeight = 10,
+  minLeftWidth = 10,
+  minRightWidth = 10,
+  localKey = 'dynamicResizerLocalKey',
+}: DragProps) => {
+  const [width, setWidth] = useState<number | string>(0);
+  const [height, setHeight] = useState<number | string>(0);
+  const [minWidth, setMinWidth] = useState<number | string | undefined>(undefined);
+  const [minHeight, setMinHeight] = useState<number | string | undefined>(undefined);
+  const [maxWidth, setMaxWidth] = useState<number | string | undefined>(undefined);
+  const [maxHeight, setMaxHeight] = useState<number | string | undefined>(undefined);
+  // Cache width
+  const [localWidth, setLocalWidth] = useLocalStorageState<number | string | undefined>(
+    localKey + 'width',
+  );
   // Cache height
-  const [localTopHeight, setLocalTopHeight] = useLocalStorageState<number | undefined>(cacheKey);
-  // Flag to track first render
+  const [localHeight, setLocalHeight] = useLocalStorageState<number | string | undefined>(
+    localKey + 'height',
+  );
+  // Mark the first rendering
   const [isInitialSetupDone, setIsInitialSetupDone] = useState<boolean>(false);
 
-  // init top height
   useEffect(() => {
-    initPropHeight();
     setIsInitialSetupDone(true);
+
+    return () => {
+      setIsInitialSetupDone(false);
+    };
   }, []);
 
+  // init
   useEffect(() => {
     if (isInitialSetupDone) {
-      const newTopHeight = calcHeightPriority();
-      updateELHeight(newTopHeight);
-      setLocalTopHeight(newTopHeight);
+      initSize();
     }
   }, [isInitialSetupDone]);
 
-  // divider‘s position
-  const position = useMemo(() => ({ x: 0, y: topHeight }), [topHeight]);
+  // When the total height of the outer box changes, update the maximum and minimum heights
+  useEffect(() => {
+    if (isInitialSetupDone && direction === 'vertical') {
+      updateMaxAndMinHeight();
+    }
+  }, [isInitialSetupDone, containerRef.current?.offsetHeight, minTopHeight, minBottomHeight]);
 
-  // Restrict the drag range of react-dragble
-  const bounds = useMemo(
-    () => ({
-      top: limitMinTopHeight,
-      bottom: (containerRef.current?.offsetHeight || 0) - limitMinBottomHeight,
-    }),
-    [limitMinTopHeight, containerRef],
-  );
-
-  /* -----------------------calc style-------------------------- */
-  const topStyle = useMemo(() => {
-    return {
-      height: topHeight + 'px',
-    };
-  }, [topHeight]);
-
-  const bottomStyle = useMemo(() => {
-    return {
-      height: bottomHeight + 'px',
-    };
-  }, [bottomHeight]);
+  // When the total width of the outer box changes, update the maximum and minimum widths
+  useEffect(() => {
+    if (isInitialSetupDone && direction === 'horizontal') {
+      updateMaxAndMinWidth();
+    }
+  }, [isInitialSetupDone, containerRef.current?.offsetWidth, minLeftWidth, minRightWidth]);
 
   /* -----------------------Events-------------------------- */
-  // Initialize the height passed in externally and set a maximum limit. If it exceeds half of the container, take half
-  const initPropHeight = () => {
-    if (containerRef) {
-      let calcMinTopHeight = minTopHeight;
-      let calcMinBottomHeight = minBottomHeight;
+  // Initialize the height passed in from the outside and set the maximum limit. If it exceeds half of the container, take half to set
+  const initSize = () => {
+    if (containerRef?.current) {
+      const containerWidth = containerRef?.current.offsetWidth;
+      const containerHeight = containerRef?.current.offsetHeight;
 
-      if (minTopHeight >= (containerRef.current?.offsetHeight || 0) / 2) {
-        calcMinTopHeight = (containerRef.current?.offsetHeight || 0) / 2;
+      // Calculate initialization width and height
+      let calcWidth = containerWidth;
+      let calcHeight = containerHeight;
+
+      if (direction === 'vertical') {
+        // Vertical layout needs to pay attention to the initialization height, and the width should be fully filled by default
+        calcHeight = adjustDefaultSize(
+          localHeight,
+          minTopHeight,
+          minBottomHeight,
+          containerHeight,
+          defaultHeight,
+        );
+      } else if (direction === 'horizontal') {
+        // Horizontal layout needs to pay attention to initializing the width, and the height should be fully supported by default
+        calcWidth = adjustDefaultSize(
+          localWidth,
+          minLeftWidth,
+          minRightWidth,
+          containerWidth,
+          defaultWidth,
+        );
       }
 
-      if (minBottomHeight >= (containerRef.current?.offsetHeight || 0) / 2) {
-        calcMinBottomHeight = (containerRef.current?.offsetHeight || 0) / 2;
-      }
-
-      // The minTopHeight value cannot be set to 0, otherwise the draggable cannot be dragged. The solution is to add a minimum decimal
-      setLimitMinTopHeight(calcMinTopHeight || MINIMUM_HEIGHT);
-      setLimitMinBottomHeight(calcMinBottomHeight);
+      /* -----------------------Set the default width, height, and cache values for the current drag and drop settings-------------------------- */
+      updateWidth(calcWidth);
+      updateHeight(calcHeight);
     }
   };
 
-  // calc Height's priority
-  const calcHeightPriority = useCallback(() => {
-    let newTopHeight = 0;
-    // Determine if there is a cached value
-    if (localTopHeight !== undefined && localTopHeight !== null) {
-      const cacheHeight = isNaN(Number(localTopHeight)) ? 0 : Number(localTopHeight);
-      newTopHeight = cacheHeight;
-    } else {
-      newTopHeight = defaultHeight;
-    }
-    // If it is less than the minimum value, then take the minimum value
-    if (newTopHeight < limitMinTopHeight) {
-      newTopHeight = limitMinTopHeight;
-    }
-    // If it is greater than the outer container, then take the height/2 of the outer container
-    if (containerRef) {
-      if (newTopHeight >= (containerRef?.current?.offsetHeight || 0)) {
-        newTopHeight = (containerRef.current?.offsetHeight || 0) / 2;
-      }
-    }
-    // Limit cannot be 0
-    return newTopHeight || MINIMUM_HEIGHT;
-  }, [containerRef, topHeight, limitMinTopHeight, localTopHeight, defaultHeight]);
+  const updateMaxAndMinWidth = useCallback(() => {
+    if (containerRef?.current) {
+      const containerWidth = containerRef?.current.offsetWidth;
+      // Initialize maximum and minimum width
+      let minWidth = containerWidth;
+      let maxWidth = containerWidth;
 
-  // Update top and bottom height
-  const updateELHeight = useCallback(
-    (newTopHeight: number) => {
-      if (containerRef) {
-        const containerHeight = containerRef?.current?.offsetHeight || 0;
-        const maxResizeHeight = containerHeight - limitMinBottomHeight;
-        if (newTopHeight >= limitMinTopHeight && newTopHeight <= maxResizeHeight) {
-          setTopHeight(newTopHeight);
-          setBottomHeight(containerHeight - newTopHeight);
-        }
-      }
+      minWidth = calcMinSize(minLeftWidth, containerWidth);
+      maxWidth = calcMaxSize(minRightWidth, containerWidth);
+
+      /* -----------------------Set default configuration parameters-------------------------- */
+      setMinWidth(minWidth);
+      setMaxWidth(maxWidth);
+    }
+  }, [containerRef, minLeftWidth, minRightWidth]);
+
+  const updateMaxAndMinHeight = useCallback(() => {
+    if (containerRef?.current) {
+      const containerHeight = containerRef?.current.offsetHeight;
+      // Initialize maximum and minimum heights
+      let minHeight = containerHeight;
+      let maxHeight = containerHeight;
+
+      minHeight = calcMinSize(minTopHeight, containerHeight);
+      maxHeight = calcMaxSize(minBottomHeight, containerHeight);
+
+      /* -----------------------Set default configuration parameters-------------------------- */
+      setMinHeight(minHeight);
+      setMaxHeight(maxHeight);
+    }
+  }, [containerRef, minTopHeight, minBottomHeight]);
+
+  const updateWidth = useCallback(
+    // When dragging vertically, the height changes while the width remains at 100%
+    (width: number) => {
+      const calcWidth = direction === 'horizontal' ? width : '100%';
+      setWidth(calcWidth);
+      setLocalWidth(calcWidth);
     },
-    [containerRef, limitMinTopHeight, limitMinBottomHeight],
+    [direction, width],
   );
 
-  // set top height to 0
-  const setTopHeightToZero = () => {
-    if (containerRef) {
-      updateELHeight(limitMinTopHeight || 0);
-      setLocalTopHeight(limitMinTopHeight || 0);
-    }
-  };
-
-  // set bottom height to 0
-  const setBottomHeightToZero = () => {
-    if (containerRef) {
-      const containerHeight = containerRef?.current?.offsetHeight || 0;
-      updateELHeight(containerHeight - limitMinBottomHeight || 0);
-      setLocalTopHeight(containerHeight - limitMinBottomHeight || 0);
-    }
-  };
+  const updateHeight = useCallback(
+    // When dragging horizontally, the width changes and the height remains at 100%
+    (height: number) => {
+      const calcHeight = direction === 'vertical' ? height : '100%';
+      setHeight(calcHeight);
+      setLocalHeight(calcHeight);
+    },
+    [direction, height],
+  );
 
   return {
-    topHeight,
-    bottomHeight,
-    position,
-    bounds,
-    topStyle,
-    bottomStyle,
-    updateELHeight,
-    setBottomHeightToZero,
-    setTopHeightToZero,
+    width,
+    height,
+    minWidth,
+    minHeight,
+    maxWidth,
+    maxHeight,
+    updateWidth,
+    updateHeight,
   };
 };
 

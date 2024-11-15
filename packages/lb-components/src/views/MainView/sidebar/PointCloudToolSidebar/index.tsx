@@ -486,6 +486,7 @@ const PointCloudToolSidebar: React.FC<IProps> = ({
           minTopHeight={42}
           defaultHeight={400}
           localKey={
+            'setting' +
             'id:' +
             stepInfo?.id +
             'taskID:' +

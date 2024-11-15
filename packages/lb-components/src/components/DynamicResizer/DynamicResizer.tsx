@@ -1,43 +1,48 @@
-import React, { FC, useRef } from 'react';
-import './DynamicResizer.scss';
-import useDrag from './hooks/useDrag';
+import React, { useRef } from 'react';
+import { Resizable } from 're-resizable';
 import { DynamicResizerProps } from './types/interface';
+import './styles.scss';
+import useDrag from './hooks/useDrag';
 
-const DynamicResizer: FC<DynamicResizerProps> = (props) => {
-  const {
-    minTopHeight = 0,
-    minBottomHeight = 0,
-    defaultHeight = 50,
-    axis = 'y',
-    children,
-    localKey = 'dynamicResizerHeights',
-    customDivider,
-    isShortcutButton = false,
-  } = props;
-
+const DynamicResizer: React.FC<DynamicResizerProps> = ({
+  direction = 'vertical',
+  children,
+  defaultWidth,
+  defaultHeight,
+  minTopHeight,
+  minBottomHeight,
+  minLeftWidth,
+  minRightWidth,
+  localKey,
+  enableEdges = ['right', 'bottom'],
+  onResizeStart,
+  onResize,
+  onResizeStop,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Detach the universal drag and drop function to calculate the styles above and below
-  const { rendered, topStyle, bottomStyle } = useDrag({
+  const dynamicResizerProps = useDrag({
+    direction,
     containerRef,
+    defaultHeight,
+    defaultWidth,
     minTopHeight,
     minBottomHeight,
-    defaultHeight,
-    axis,
+    minLeftWidth,
+    minRightWidth,
     localKey,
-    customDivider,
-    isShortcutButton,
+    enableEdges,
+    onResizeStart,
+    onResize,
+    onResizeStop,
   });
 
   return (
-    <div className='dynamic-resizer-content' ref={containerRef}>
-      <div className='dynamic-resizer-top' style={topStyle}>
-        {children[0]}
-      </div>
-      {rendered}
-      <div className='dynamic-resizer-bottom' style={bottomStyle}>
-        {children[1]}
-      </div>
+    <div className={`dynamic-resizer-content ${direction}`} ref={containerRef}>
+      <Resizable {...dynamicResizerProps}>
+        <div className='resizable-child'>{children[0]}</div>
+      </Resizable>
+
+      <div className='resizable-child-two'>{children[1]}</div>
     </div>
   );
 };
