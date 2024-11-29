@@ -987,7 +987,7 @@ export const AudioPlayer = ({
         {audioPlayer}
         {regionList.map((region) => {
           const { id } = region;
-          const el = document.querySelector(`[data-id=${id}]`);
+          const el = document.querySelector(`[data-id="${id}"]`);
           return el ? (
             <ClipRegion
               el={el}
