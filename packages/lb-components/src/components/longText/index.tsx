@@ -18,7 +18,7 @@ interface IProps {
   openByText?: boolean; // hover文字展开
   style?: CSSProperties;
   isToolTips?: boolean;
-  wordCount?: number;
+  maxWordCount?: number;
   overflowMaxLines?: number;
 }
 
@@ -75,6 +75,7 @@ const LongText = (props: IProps) => {
     style,
     isToolTips,
     overflowMaxLines = 1,
+    maxWordCount,
   } = props;
 
   const el = useRef<null | HTMLDivElement>(null);
@@ -86,6 +87,29 @@ const LongText = (props: IProps) => {
     }
     return el.current && el.current?.clientWidth < el.current?.scrollWidth;
   }, [size]);
+
+  if (maxWordCount) {
+    if (text.length > maxWordCount) {
+      const newText = text.substring(0, maxWordCount) + '...';
+      const tipsProps = {
+        placement,
+        content: text,
+      };
+      if (isToolTips) {
+        return (
+          <Tooltip {...tipsProps} title={text}>
+            <TextDom overflowMaxLines={overflowMaxLines} style={style} ref={el} text={newText} />
+          </Tooltip>
+        );
+      }
+      return (
+        <Popover {...tipsProps}>
+          <TextDom overflowMaxLines={overflowMaxLines} style={style} ref={el} text={newText} />
+        </Popover>
+      );
+    }
+    return <span>{text}</span>;
+  }
 
   if (openByText) {
     let tipsProps = {
