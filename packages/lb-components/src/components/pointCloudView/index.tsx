@@ -12,7 +12,7 @@
  */
 
 import { getClassName } from '@/utils/dom';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import PointCloud3DView from './PointCloud3DView';
 import PointCloudBackView from './PointCloudBackView';
 import PointCloudTopView from './PointCloudTopView';
@@ -39,6 +39,7 @@ import { a2MapStateToProps, IA2MapStateProps } from '@/store/annotation/map';
 import classNames from 'classnames';
 import SideAndBackOverView from './components/sideAndBackOverView';
 import { SetLoadPCDFileLoading } from '@/store/annotation/actionCreators';
+import DynamicResizer from '@/components/DynamicResizer';
 
 interface IProps extends IA2MapStateProps {
   drawLayerSlot?: DrawLayerSlot;
@@ -59,10 +60,14 @@ const PointCloudView: React.FC<IProps> = (props) => {
     config,
     measureVisible,
     setResourceLoading,
+    stepInfo,
   } = props;
   const ptCtx = useContext(PointCloudContext);
   const { globalPattern, setGlobalPattern, selectedIDs } = ptCtx;
   const dispatch = useDispatch();
+  const rightRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [minTopHeight, setMinTopHeight] = useState<number>(0);
   const [isEnlargeTopView, setIsEnlargeTopView] = useState(false);
   const selectAndEnlarge = selectedIDs?.length > 0 && isEnlargeTopView;
 
@@ -101,6 +106,14 @@ const PointCloudView: React.FC<IProps> = (props) => {
       ptCtx.setSegmentation(segmentation);
     }
   }, [imgIndex]);
+
+  useEffect(() => {
+    if (rightRef.current) {
+      // Limit the minimum drag range of the upper half
+      const calcHeight = rightRef.current?.offsetHeight - 233;
+      setMinTopHeight(calcHeight);
+    }
+  }, [contentRef.current]);
 
   useEffect(() => {
     toolInstanceRef.current.exportData = () => {
@@ -171,42 +184,78 @@ const PointCloudView: React.FC<IProps> = (props) => {
         <div className={getClassName('point-cloud-wrapper')}>
           <AnnotatedAttributesPanelFixedLeft />
 
-          <div className={getClassName('point-cloud-content')}>
-            <div className={getClassName('point-cloud-container', 'left')}>
-              <PointCloud3DView setResourceLoading={setResourceLoading} />
-              {backAndSideView}
-            </div>
-            <div
-              className={classNames({
-                [getClassName('point-cloud-container', 'right')]: true,
-                [getClassName('point-cloud-container', 'rightZoom')]: isEnlargeTopView,
-              })}
+          <div className={getClassName('point-cloud-content')} ref={contentRef}>
+            <DynamicResizer
+              direction='horizontal'
+              localKey={
+                'leftAllView' +
+                'id:' +
+                stepInfo?.id +
+                'taskID:' +
+                stepInfo?.taskID +
+                'step:' +
+                stepInfo?.step +
+                'type:' +
+                stepInfo?.type
+              }
+              defaultWidth={360}
+              minLeftWidth={244}
+              minRightWidth={'50%'}
             >
-              <PointCloudTopView
-                drawLayerSlot={drawLayerSlot}
-                checkMode={checkMode}
-                intelligentFit={intelligentFit}
-                setIsEnlargeTopView={setIsEnlargeTopView}
-                onExitZoom={() => {
-                  setIsEnlargeTopView(false);
-                }}
-                isEnlargeTopView={isEnlargeTopView}
-              />
+              <div className={getClassName('point-cloud-container', 'left')}>
+                <PointCloud3DView setResourceLoading={setResourceLoading} />
+                {backAndSideView}
+              </div>
               <div
                 className={classNames({
-                  [getClassName('point-cloud-container', 'right-bottom')]: !isEnlargeTopView,
-                  [getClassName('point-cloud-container', 'right-bottom-floatLeft')]:
-                    isEnlargeTopView,
+                  [getClassName('point-cloud-container', 'right')]: true,
+                  [getClassName('point-cloud-container', 'rightZoom')]: isEnlargeTopView,
                 })}
+                ref={rightRef}
               >
-                <PointCloud2DView
-                  isEnlargeTopView={isEnlargeTopView}
-                  thumbnailWidth={isEnlargeTopView ? 300 : 455}
-                  checkMode={checkMode}
-                  measureVisible={measureVisible}
-                />
+                <DynamicResizer
+                  localKey={
+                    'rightAllView' +
+                    'id:' +
+                    stepInfo?.id +
+                    'taskID:' +
+                    stepInfo?.taskID +
+                    'step:' +
+                    stepInfo?.step +
+                    'type:' +
+                    stepInfo?.type
+                  }
+                  defaultHeight={300}
+                  minTopHeight={minTopHeight}
+                  minBottomHeight={160}
+                >
+                  <PointCloudTopView
+                    drawLayerSlot={drawLayerSlot}
+                    checkMode={checkMode}
+                    intelligentFit={intelligentFit}
+                    setIsEnlargeTopView={setIsEnlargeTopView}
+                    onExitZoom={() => {
+                      setIsEnlargeTopView(false);
+                    }}
+                    isEnlargeTopView={isEnlargeTopView}
+                  />
+                  <div
+                    className={classNames({
+                      [getClassName('point-cloud-container', 'right-bottom')]: !isEnlargeTopView,
+                      [getClassName('point-cloud-container', 'right-bottom-floatLeft')]:
+                        isEnlargeTopView,
+                    })}
+                  >
+                    <PointCloud2DView
+                      isEnlargeTopView={isEnlargeTopView}
+                      thumbnailWidth={isEnlargeTopView ? 300 : 455}
+                      checkMode={checkMode}
+                      measureVisible={measureVisible}
+                    />
+                  </div>
+                </DynamicResizer>
               </div>
-            </div>
+            </DynamicResizer>
           </div>
 
           <AnnotatedAttributesPanelFixedRight />

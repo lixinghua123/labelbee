@@ -1,115 +1,94 @@
-import React, { useCallback, useMemo } from 'react';
-import Draggable from 'react-draggable';
-import type { DraggableEventHandler } from 'react-draggable';
+import { useEffect, useState } from 'react';
 import { DragProps } from '../types/interface';
-import { useLocalStorageState } from 'ahooks';
 import useUpdateHeight from './useUpdateHeight';
-import topToZeroIcon from '../assets/topToZero.svg';
-import bottomToZeroIcon from '../assets/bottomToZero.svg';
-import dividerIcon from '../assets/divider.svg';
+import useDraggingAllowed from './useDraggingAllowed';
 
 const useDrag = ({
   containerRef,
-  minTopHeight = 0,
-  minBottomHeight = 0,
-  defaultHeight = 50,
-  axis,
+  direction,
+  defaultHeight,
+  defaultWidth,
+  minTopHeight,
+  minBottomHeight,
+  minLeftWidth,
+  minRightWidth,
   localKey,
-  isShortcutButton = false,
+  enableEdges,
+  onResizeStart,
+  onResize,
+  onResizeStop,
 }: DragProps) => {
-  const cacheKey = localKey || 'dynamicResizerHeights';
-  const {
-    topHeight,
-    position,
-    bounds,
-    topStyle,
-    bottomStyle,
-    updateELHeight,
-    setTopHeightToZero,
-    setBottomHeightToZero,
-  } = useUpdateHeight(containerRef, minTopHeight, minBottomHeight, defaultHeight, cacheKey);
-  const [localTopHeight, setLocalTopHeight] = useLocalStorageState<number | undefined>(cacheKey);
+  const { width, height, minWidth, minHeight, maxWidth, maxHeight, updateHeight, updateWidth } =
+    useUpdateHeight({
+      direction,
+      containerRef,
+      minTopHeight,
+      minBottomHeight,
+      defaultHeight,
+      minLeftWidth,
+      minRightWidth,
+      defaultWidth,
+      localKey,
+    });
+
+  const enable = useDraggingAllowed(direction, enableEdges);
 
   // Hide scrollbar at the beginning of drag and drop
-  const onDragStart: DraggableEventHandler = useCallback(
-    (e) => {
-      e.stopPropagation();
-      if (containerRef.current) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleResizeStart = () => {
+    setIsDragging(true);
+    if (onResizeStart) {
+      onResizeStart();
+    }
+  };
+
+  const handleResize = () => {
+    if (onResize) {
+      onResize();
+    }
+  };
+
+  const handleResizeStop = (e: any, direction: any, ref: HTMLElement) => {
+    setIsDragging(false);
+    updateWidth(ref.offsetWidth);
+    updateHeight(ref.offsetHeight);
+
+    if (onResizeStop) {
+      onResizeStop();
+    }
+  };
+
+  useEffect(() => {
+    if (containerRef.current) {
+      if (isDragging) {
         containerRef.current.classList.add('hide-scrollbar');
-      }
-    },
-    [containerRef],
-  );
-
-  const onDrag: DraggableEventHandler = useCallback(
-    (e, node) => {
-      e.stopPropagation();
-      updateELHeight(node.y);
-    },
-    [updateELHeight],
-  );
-
-  // Show scroll bar at the end of drag and drop
-  const onDragStop: DraggableEventHandler = useCallback(
-    (e) => {
-      e.stopPropagation();
-      if (containerRef.current) {
+      } else {
         containerRef.current.classList.remove('hide-scrollbar');
       }
-      setLocalTopHeight(topHeight);
-    },
-    [containerRef, setLocalTopHeight, topHeight],
-  );
-
-  // render shortcut button
-  const renderContentBtn = useMemo(() => {
-    if (isShortcutButton) {
-      return (
-        <>
-          <img
-            src={topToZeroIcon}
-            className='divider-top'
-            draggable='false'
-            onClick={setTopHeightToZero}
-          />
-          <div className='divider-icon' draggable='false' />
-          <img
-            src={bottomToZeroIcon}
-            className='divider-bottom'
-            draggable='false'
-            onClick={setBottomHeightToZero}
-          />
-        </>
-      );
-    } else {
-      return (
-        <>
-          <img src={dividerIcon} className='divider-all' draggable='false' />
-          <div className='divider-icon' draggable='false' />
-        </>
-      );
     }
-  }, [isShortcutButton, setTopHeightToZero, setBottomHeightToZero]);
+  }, [isDragging, containerRef.current]);
 
-  const rendered = useMemo(() => {
-    const divider = <div className='divider'>{renderContentBtn}</div>;
+  const dynamicResizerProps = {
+    size: {
+      width,
+      height,
+    },
+    onResizeStart: handleResizeStart,
+    onResize: handleResize,
+    onResizeStop: handleResizeStop,
+    enable: enable,
+    handleClasses: {
+      right: 'dynamic-right-handle', // Customize the class on the right edge
+      bottom: 'dynamic-bottom-handle', // Custom bottom edge class
+    },
+    minWidth,
+    maxWidth,
+    minHeight,
+    maxHeight,
+  };
 
-    return (
-      <Draggable
-        axis={axis}
-        position={position}
-        handle='.divider'
-        onStart={onDragStart}
-        onDrag={onDrag}
-        onStop={onDragStop}
-        bounds={bounds}
-      >
-        {divider}
-      </Draggable>
-    );
-  }, [axis, position, onDrag, onDragStop, bounds]);
-
-  return { rendered, topStyle, bottomStyle };
+  return dynamicResizerProps;
 };
 
 export default useDrag;

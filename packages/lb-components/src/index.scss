@@ -1559,17 +1559,22 @@ $headerHeight: 40px;
       line-height: 40px;
       display: flex;
       justify-content: space-between;
+      height: auto;
     }
     &__header-title {
-      flex: 1;
+      flex-shrink: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       font-weight: 500;
+      height: 40px;
     }
     &__header-toolbar {
+      flex: 1;
       display: flex;
       align-items: center;
       font-size: 14px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
 
       .#{$ptPrefix} {
         @mixin iconMg {
@@ -1659,7 +1664,7 @@ $headerHeight: 40px;
   }
 
   .#{$ptPrefix}-container__left {
-    width: 455px;
+    width: 100%;
     display: flex;
     flex-direction: column;
     border-right: 1px solid #fff;
@@ -1668,6 +1673,7 @@ $headerHeight: 40px;
     flex-shrink: 0;
 
     .#{$ptPrefix}-3d-container {
+      background: #444;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -1824,7 +1830,7 @@ $headerHeight: 40px;
       }
     }
 
-    .#{$ptPrefix}-container__left-bottom {
+    .#{$ptPrefix}-container__left-bottom{
       flex: 1;
       flex-direction: column;
       display: flex;
@@ -1859,7 +1865,7 @@ $headerHeight: 40px;
         border-top: 1px solid white;
 
         .#{$ptPrefix}-container__bottom-view-content {
-          flex: 1;
+          height: 100%;
           .#{$ptPrefix}-container__core-instance {
             position: relative;
             width: 100%;
@@ -1893,13 +1899,15 @@ $headerHeight: 40px;
   }
 
   .#{$ptPrefix}-container__right {
-    flex: 1;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     background-color: #444;
 
     .#{$ptPrefix}-container__top-view {
+      height: 100%;
       border-bottom: 1px solid #fff;
       overflow: hidden;
       display: flex;
@@ -1932,7 +1940,7 @@ $headerHeight: 40px;
     }
 
     .#{$ptPrefix}-container__right-bottom {
-      flex: 1;
+      height: 100%;
       display: flex;
       overflow: auto;
 

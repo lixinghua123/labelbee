@@ -1,0 +1,76 @@
+.dynamic-resizer-content {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+
+  &.horizontal {
+    flex-direction: row;
+  }
+
+  &.vertical {
+    flex-direction: column;
+  }
+
+  .resizable-container {
+    display: flex;
+  }
+
+  .resizable-child{
+    width: 100%;
+    height: 100%;
+  }
+
+  .resizable-child-two{
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .divider-all{
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 1;
+  } 
+
+  .split-divider {
+    background-color: #ccc;
+    width: 5px;
+    height: 100%;
+  }
+  
+  .dynamic-right-handle{
+    cursor: ew-resize !important;
+    z-index: 100;
+  }
+
+  .dynamic-bottom-handle{
+    cursor: ns-resize !important;
+    z-index: 100;
+    &::after{
+      content: ''; 
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 1px;
+      background: #ccc;
+    }
+  }
+}
+
+.hide-scrollbar * {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.hide-scrollbar *::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
