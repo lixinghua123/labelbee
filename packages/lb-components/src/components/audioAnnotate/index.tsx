@@ -141,6 +141,7 @@ const AudioSideBar = (props: any) => {
     isEdit,
     tagConfigurable,
     clipConfigurable,
+    valid,
   } = props;
   let labelInfoSet = config?.inputList || [];
   let tagResult = result?.tag ?? {};
@@ -307,6 +308,7 @@ const AudioSideBar = (props: any) => {
             toggleAudioOption,
             labelSidebar,
             clipSidebar,
+            valid
           })}
         </div>
       );
@@ -659,6 +661,7 @@ const AudioAnnotate: React.FC<AppProps & IProps> = (props) => {
               isEdit={audioContext?.isEdit}
               tagConfigurable={tagConfigurable}
               clipConfigurable={clipConfigurable}
+              valid={valid}
             />
           </Sider>
           <PreviewResult />
